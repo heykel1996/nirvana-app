@@ -9,11 +9,43 @@
       "rewrite": "/index.html"
     },
     {
+      "route": "/dashboard",
+      "rewrite": "/index.html"
+    },
+    {
       "route": "/lvmdp",
       "rewrite": "/index.html"
     },
     {
-      "route": "/dashboard",
+      "route": "/stp",
+      "rewrite": "/index.html"
+    },
+    {
+      "route": "/water-level",
+      "rewrite": "/index.html"
+    },
+    {
+      "route": "/genset-log",
+      "rewrite": "/index.html"
+    },
+    {
+      "route": "/elektrikal-pln",
+      "rewrite": "/index.html"
+    },
+    {
+      "route": "/check-sheets",
+      "rewrite": "/index.html"
+    },
+    {
+      "route": "/photo-documentation",
+      "rewrite": "/index.html"
+    },
+    {
+      "route": "/shift-handover",
+      "rewrite": "/index.html"
+    },
+    {
+      "route": "/reports",
       "rewrite": "/index.html"
     }
   ]
