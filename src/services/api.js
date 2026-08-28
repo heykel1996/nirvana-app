@@ -38,6 +38,47 @@ export const lvmdpAPI = {
   create: (data) => api.post('/api/lvmdp', data),
 };
 
+export const stpAPI = {
+  getAll: () => api.get('/api/stp'),
+  getById: (id) => api.get(`/api/stp/${id}`),
+  create: (data) => api.post('/api/stp', data),
+  update: (id, data) => api.put(`/api/stp/${id}`, data),
+  delete: (id) => api.delete(`/api/stp/${id}`),
+};
+
+export const waterLevelsAPI = {
+  getAll: () => api.get('/api/water-levels'),
+  getById: (id) => api.get(`/api/water-levels/${id}`),
+  create: (data) => api.post('/api/water-levels', data),
+  update: (id, data) => api.put(`/api/water-levels/${id}`, data),
+  delete: (id) => api.delete(`/api/water-levels/${id}`),
+};
+
+export const elektrikalPlnAPI = {
+  getAll: () => api.get('/api/elektrikal-pln'),
+  getById: (id) => api.get(`/api/elektrikal-pln/${id}`),
+  create: (data) => api.post('/api/elektrikal-pln', data),
+  update: (id, data) => api.put(`/api/elektrikal-pln/${id}`, data),
+  delete: (id) => api.delete(`/api/elektrikal-pln/${id}`),
+};
+
+export const checkSheetsAPI = {
+  getAll: () => api.get('/api/check-sheets'),
+  create: (data) => api.post('/api/check-sheets', data),
+};
+
+export const photoAPI = {
+  getAll: () => api.get('/api/photo-documentation'),
+  create: (data) => api.post('/api/photo-documentation', data, {
+    headers: { 'Content-Type': 'multipart/form-data' },
+  }),
+};
+
+export const shiftHandoverAPI = {
+  getAll: () => api.get('/api/shift-handover'),
+  create: (data) => api.post('/api/shift-handover', data),
+};
+
 export const dashboardAPI = {
   getSummary: () => api.get('/api/dashboard/summary'),
 };
