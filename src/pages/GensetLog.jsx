@@ -1,27 +1,27 @@
-import { useEffect, useState } from 'react';
-import axios from 'axios';
-import toast from 'react-hot-toast';
+import { useEffect, useState } from "react";
+import { gensetLogAPI } from "../services/api";
+import toast from "react-hot-toast";
 
-const API_BASE_URL = 'http://localhost:3000';
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://nirvana-mep-api-ffa0h4hsbtdkeucv.southeastasia-01.azurewebsites.net';
 
 const GensetLog = () => {
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
   const [formData, setFormData] = useState({
-    reading_date: new Date().toISOString().split('T')[0],
-    reading_time: '07:00',
+    reading_date: new Date().toISOString().split("T")[0],
+    reading_time: "07:00",
     shift_id: 1,
-    petugas: '',
+    petugas: "",
     is_running: 0,
-    running_hours: '',
-    daily_tank_volume: '',
-    storage_tank_volume: '',
-    battery_24vdc: '',
-    battery_charger_status: 'ON',
-    engine_temperature: '',
-    oil_pressure: '',
-    ampere_accu: '',
+    running_hours: "",
+    daily_tank_volume: "",
+    storage_tank_volume: "",
+    battery_24vdc: "",
+    battery_charger_status: "ON",
+    engine_temperature: "",
+    oil_pressure: "",
+    ampere_accu: "",
     pipa_bahan_bakar_checked: 0,
     filter_checked: 0,
     visual_inspection: 0,
@@ -31,55 +31,50 @@ const GensetLog = () => {
     air_filter_clean: 0,
     mesin_bersih: 0,
     kabel_accu_checked: 0,
-    notes: ''
+    notes: "",
   });
 
-  useEffect(() => { fetchData(); }, []);
+  useEffect(() => {
+    fetchData();
+  }, []);
 
   const fetchData = async () => {
     try {
-      const token = localStorage.getItem('token');
-      const response = await axios.get(`${API_BASE_URL}/api/genset-log`, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
+      const response = await gensetLogAPI.getAll();
       setData(response.data.data || []);
-    } catch (error) { toast.error('Failed to fetch genset log'); }
-    finally { setLoading(false); }
+    } catch (error) {
+      toast.error("Failed to fetch genset log");
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleDelete = async (id) => {
-    if (!window.confirm('Yakin ingin menghapus?')) return;
+    if (!window.confirm("Yakin ingin menghapus?")) return;
     try {
-      const token = localStorage.getItem('token');
-      await axios.delete(`${API_BASE_URL}/api/genset-log/${id}`, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      toast.success('Data dihapus!');
+      await gensetLogAPI.delete(id);
+      toast.success("Data dihapus!");
       fetchData();
-    } catch (error) { toast.error('Gagal menghapus'); }
+    } catch (error) {
+      toast.error("Gagal menghapus");
+    }
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const token = localStorage.getItem('token');
-      await axios.post(`${API_BASE_URL}/api/genset-log`, formData, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      toast.success('Genset log berhasil disimpan!');
+      await gensetLogAPI.create(formData);
+      toast.success("Genset log berhasil disimpan!");
       setShowForm(false);
       fetchData();
-    } catch (error) { toast.error('Gagal menyimpan'); }
+    } catch (error) {
+      toast.error("Gagal menyimpan");
+    }
   };
 
   const CheckboxItem = ({ label, field }) => (
     <label className="flex items-center gap-2 p-2 bg-gray-50 rounded-lg cursor-pointer hover:bg-gray-100">
-      <input
-        type="checkbox"
-        checked={formData[field] === 1}
-        onChange={(e) => setFormData({ ...formData, [field]: e.target.checked ? 1 : 0 })}
-        className="w-4 h-4 text-blue-600 rounded"
-      />
+      <input type="checkbox" checked={formData[field] === 1} onChange={(e) => setFormData({ ...formData, [field]: e.target.checked ? 1 : 0 })} className="w-4 h-4 text-blue-600 rounded" />
       <span className="text-sm text-gray-700">{label}</span>
     </label>
   );
@@ -99,11 +94,8 @@ const GensetLog = () => {
           <h1 className="text-3xl font-bold text-gray-900">Log Sheet Genset</h1>
           <p className="text-gray-600 mt-1">Monitoring Genset, Battery & Checklist</p>
         </div>
-        <button
-          onClick={() => setShowForm(!showForm)}
-          className="bg-gradient-to-r from-blue-600 to-blue-700 text-white px-6 py-3 rounded-xl hover:from-blue-700 hover:to-blue-800 shadow-lg font-medium"
-        >
-          {showForm ? '✕ Cancel' : '+ Add New Log'}
+        <button onClick={() => setShowForm(!showForm)} className="bg-gradient-to-r from-blue-600 to-blue-700 text-white px-6 py-3 rounded-xl hover:from-blue-700 hover:to-blue-800 shadow-lg font-medium">
+          {showForm ? "✕ Cancel" : "+ Add New Log"}
         </button>
       </div>
 
@@ -166,7 +158,7 @@ const GensetLog = () => {
             </div>
 
             <div className="border-t pt-4">
-              <h3 className="text-lg font-medium text-gray-900 mb-3"> Battery 24VDC (25-29 Volt DC)</h3>
+              <h3 className="text-lg font-medium text-gray-900 mb-3">🔋 Battery 24VDC (25-29 Volt DC)</h3>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">Battery 24VDC (Volt)</label>
@@ -188,15 +180,36 @@ const GensetLog = () => {
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">Temperature (°C)</label>
-                  <input type="number" step="0.01" value={formData.engine_temperature} onChange={(e) => setFormData({ ...formData, engine_temperature: e.target.value })} className="w-full rounded-lg border-gray-300 border p-2.5" placeholder="OFF: 36-40°C, Run: 70-90°C" />
+                  <input
+                    type="number"
+                    step="0.01"
+                    value={formData.engine_temperature}
+                    onChange={(e) => setFormData({ ...formData, engine_temperature: e.target.value })}
+                    className="w-full rounded-lg border-gray-300 border p-2.5"
+                    placeholder="OFF: 36-40°C, Run: 70-90°C"
+                  />
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">Oil Pressure (Bar)</label>
-                  <input type="number" step="0.01" value={formData.oil_pressure} onChange={(e) => setFormData({ ...formData, oil_pressure: e.target.value })} className="w-full rounded-lg border-gray-300 border p-2.5" placeholder="OFF: 0 Bar, Run: 3.5-5 Bar" />
+                  <input
+                    type="number"
+                    step="0.01"
+                    value={formData.oil_pressure}
+                    onChange={(e) => setFormData({ ...formData, oil_pressure: e.target.value })}
+                    className="w-full rounded-lg border-gray-300 border p-2.5"
+                    placeholder="OFF: 0 Bar, Run: 3.5-5 Bar"
+                  />
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">Ampere Accu</label>
-                  <input type="number" step="0.01" value={formData.ampere_accu} onChange={(e) => setFormData({ ...formData, ampere_accu: e.target.value })} className="w-full rounded-lg border-gray-300 border p-2.5" placeholder="OFF: 0A, Run: ...A" />
+                  <input
+                    type="number"
+                    step="0.01"
+                    value={formData.ampere_accu}
+                    onChange={(e) => setFormData({ ...formData, ampere_accu: e.target.value })}
+                    className="w-full rounded-lg border-gray-300 border p-2.5"
+                    placeholder="OFF: 0A, Run: ...A"
+                  />
                 </div>
               </div>
             </div>
@@ -254,7 +267,11 @@ const GensetLog = () => {
           </thead>
           <tbody className="bg-white divide-y divide-gray-200">
             {data.length === 0 ? (
-              <tr><td colSpan="14" className="px-6 py-8 text-center text-gray-500">No genset logs yet.</td></tr>
+              <tr>
+                <td colSpan="14" className="px-6 py-8 text-center text-gray-500">
+                  No genset logs yet.
+                </td>
+              </tr>
             ) : (
               data.map((item) => (
                 <tr key={item.id} className="hover:bg-gray-50">
@@ -263,9 +280,7 @@ const GensetLog = () => {
                   <td className="px-3 py-3 text-sm">{item.shift_name || `Shift ${item.shift_id}`}</td>
                   <td className="px-3 py-3 text-sm">{item.petugas || item.user_name}</td>
                   <td className="px-3 py-3 text-sm">
-                    <span className={`px-2 py-1 rounded-full text-xs font-semibold ${item.is_running ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'}`}>
-                      {item.is_running ? 'RUNNING' : 'OFF'}
-                    </span>
+                    <span className={`px-2 py-1 rounded-full text-xs font-semibold ${item.is_running ? "bg-green-100 text-green-800" : "bg-gray-100 text-gray-800"}`}>{item.is_running ? "RUNNING" : "OFF"}</span>
                   </td>
                   <td className="px-3 py-3 text-sm">{item.running_hours}</td>
                   <td className="px-3 py-3 text-sm">{item.daily_tank_volume}L</td>
@@ -276,7 +291,9 @@ const GensetLog = () => {
                   <td className="px-3 py-3 text-sm">{item.oil_pressure} Bar</td>
                   <td className="px-3 py-3 text-sm">{item.ampere_accu}A</td>
                   <td className="px-3 py-3">
-                    <button onClick={() => handleDelete(item.id)} className="text-red-600 hover:text-red-900 font-medium text-sm">Delete</button>
+                    <button onClick={() => handleDelete(item.id)} className="text-red-600 hover:text-red-900 font-medium text-sm">
+                      Delete
+                    </button>
                   </td>
                 </tr>
               ))

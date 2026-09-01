@@ -1,12 +1,37 @@
-import { useState } from 'react';
+import { useState } from "react";
+import { reportAPI } from "../services/api"; // Pastikan path sesuai struktur proyek Anda
+import toast from "react-hot-toast";
+
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://nirvana-mep-api-ffa0h4hsbtdkeucv.southeastasia-01.azurewebsites.net';
 
 const Reports = () => {
-  const [reportType, setReportType] = useState('daily');
-  const [dateFrom, setDateFrom] = useState(new Date().toISOString().split('T')[0]);
-  const [dateTo, setDateTo] = useState(new Date().toISOString().split('T')[0]);
+  const [reportType, setReportType] = useState("daily");
+  const [dateFrom, setDateFrom] = useState(new Date().toISOString().split("T")[0]);
+  const [dateTo, setDateTo] = useState(new Date().toISOString().split("T")[0]);
+  const [loading, setLoading] = useState(false);
 
-  const handleExport = (format) => {
-    alert(`Export ${reportType} report from ${dateFrom} to ${dateTo} in ${format.toUpperCase()} format.\n\nFitur ini akan diimplementasikan dengan library seperti jspdf atau xlsx.`);
+  const handleExport = async (format) => {
+    setLoading(true);
+    try {
+      // Contoh integrasi pemanggilan API backend untuk download file
+      // const response = await reportAPI.export({ reportType, dateFrom, dateTo, format });
+
+      // Simulasi proses export (hapus baris setTimeout ini jika backend sudah siap)
+      await new Promise((resolve) => setTimeout(resolve, 1500));
+
+      toast.success(`Berhasil mengexport laporan ${reportType} (${format.toUpperCase()})`);
+
+      // Jika backend mengembalikan blob / file URL:
+      // const blob = new Blob([response.data], { type: format === 'pdf' ? 'application/pdf' : 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+      // const link = document.createElement('a');
+      // link.href = window.URL.createObjectURL(blob);
+      // link.download = `report-${reportType}-${dateFrom}-to-${dateTo}.${format === 'excel' ? 'xlsx' : format}`;
+      // link.click();
+    } catch (error) {
+      toast.error("Gagal mengexport laporan. Silakan coba lagi.");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -22,7 +47,7 @@ const Reports = () => {
           <div className="space-y-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Report Type</label>
-              <select value={reportType} onChange={(e) => setReportType(e.target.value)} className="w-full rounded-lg border-gray-300 border p-2.5">
+              <select value={reportType} onChange={(e) => setReportType(e.target.value)} className="w-full rounded-lg border-gray-300 border p-2.5" disabled={loading}>
                 <option value="daily">Daily Report</option>
                 <option value="weekly">Weekly Report</option>
                 <option value="monthly">Monthly Report</option>
@@ -35,21 +60,25 @@ const Reports = () => {
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Date From</label>
-              <input type="date" value={dateFrom} onChange={(e) => setDateFrom(e.target.value)} className="w-full rounded-lg border-gray-300 border p-2.5" />
+              <input type="date" value={dateFrom} onChange={(e) => setDateFrom(e.target.value)} className="w-full rounded-lg border-gray-300 border p-2.5" disabled={loading} />
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Date To</label>
-              <input type="date" value={dateTo} onChange={(e) => setDateTo(e.target.value)} className="w-full rounded-lg border-gray-300 border p-2.5" />
+              <input type="date" value={dateTo} onChange={(e) => setDateTo(e.target.value)} className="w-full rounded-lg border-gray-300 border p-2.5" disabled={loading} />
             </div>
             <div className="pt-4 space-y-2">
-              <button onClick={() => handleExport('pdf')} className="w-full bg-red-600 text-white px-4 py-3 rounded-xl hover:bg-red-700 font-medium shadow-lg flex items-center justify-center gap-2">
-                📄 Export PDF
+              <button onClick={() => handleExport("pdf")} disabled={loading} className="w-full bg-red-600 text-white px-4 py-3 rounded-xl hover:bg-red-700 font-medium shadow-lg flex items-center justify-center gap-2 disabled:opacity-50">
+                {loading ? "Processing..." : "📄 Export PDF"}
               </button>
-              <button onClick={() => handleExport('excel')} className="w-full bg-green-600 text-white px-4 py-3 rounded-xl hover:bg-green-700 font-medium shadow-lg flex items-center justify-center gap-2">
-                📊 Export Excel
+              <button
+                onClick={() => handleExport("excel")}
+                disabled={loading}
+                className="w-full bg-green-600 text-white px-4 py-3 rounded-xl hover:bg-green-700 font-medium shadow-lg flex items-center justify-center gap-2 disabled:opacity-50"
+              >
+                {loading ? "Processing..." : "📊 Export Excel"}
               </button>
-              <button onClick={() => handleExport('csv')} className="w-full bg-blue-600 text-white px-4 py-3 rounded-xl hover:bg-blue-700 font-medium shadow-lg flex items-center justify-center gap-2">
-                📋 Export CSV
+              <button onClick={() => handleExport("csv")} disabled={loading} className="w-full bg-blue-600 text-white px-4 py-3 rounded-xl hover:bg-blue-700 font-medium shadow-lg flex items-center justify-center gap-2 disabled:opacity-50">
+                {loading ? "Processing..." : "📋 Export CSV"}
               </button>
             </div>
           </div>
@@ -59,14 +88,14 @@ const Reports = () => {
           <h2 className="text-xl font-semibold mb-4 text-gray-900">Available Reports</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {[
-              { name: 'Daily Operations', icon: '📅', desc: 'Summary of daily operations' },
-              { name: 'LVMDP Readings', icon: '⚡', desc: 'Electrical readings report' },
-              { name: 'STP Operations', icon: '', desc: 'Sewage treatment report' },
-              { name: 'Water Levels', icon: '💧', desc: 'Tank water levels report' },
-              { name: 'Elektrikal PLN', icon: '💡', desc: 'PLN electricity report' },
-              { name: 'Check Sheets', icon: '✅', desc: 'Equipment inspection report' },
-              { name: 'Shift Handover', icon: '🔄', desc: 'Shift change documentation' },
-              { name: 'Photo Documentation', icon: '📷', desc: 'Photo records report' },
+              { name: "Daily Operations", icon: "📅", desc: "Summary of daily operations" },
+              { name: "LVMDP Readings", icon: "⚡", desc: "Electrical readings report" },
+              { name: "STP Operations", icon: "🌊", desc: "Sewage treatment report" },
+              { name: "Water Levels", icon: "💧", desc: "Tank water levels report" },
+              { name: "Elektrikal PLN", icon: "💡", desc: "PLN electricity report" },
+              { name: "Check Sheets", icon: "✅", desc: "Equipment inspection report" },
+              { name: "Shift Handover", icon: "🔄", desc: "Shift change documentation" },
+              { name: "Photo Documentation", icon: "📷", desc: "Photo records report" },
             ].map((report, i) => (
               <div key={i} className="border border-gray-200 rounded-xl p-4 hover:shadow-md transition-shadow cursor-pointer">
                 <div className="flex items-center gap-3">

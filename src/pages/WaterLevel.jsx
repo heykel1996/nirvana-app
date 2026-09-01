@@ -2,26 +2,25 @@ import { useEffect, useState } from 'react';
 import axios from 'axios';
 import toast from 'react-hot-toast';
 
-const API_BASE_URL = 'http://localhost:3000';
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://nirvana-mep-api-ffa0h4hsbtdkeucv.southeastasia-01.azurewebsites.net';
 
-const WaterLevels = () => {
+const WaterLevel = () => {
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
   const [formData, setFormData] = useState({
-    shift_id: 1,
     reading_date: new Date().toISOString().split('T')[0],
-    reading_time: new Date().toTimeString().split(' ')[0],
-    tank_name: '',
-    tank_location: '',
-    capacity_liters: '',
-    current_level_liters: '',
-    level_percentage: '',
-    water_quality: 'good',
-    ph_level: '',
-    temperature: '',
-    status: 'normal',
-    notes: '',
+    reading_time: '07:00',
+    shift_id: 1,
+    stand_meter: '',
+    reservoir_1: 'M',
+    reservoir_2: 'M',
+    reservoir_3: 'M',
+    boster_timur: '',
+    boster_barat: '',
+    transfer_timur: '',
+    transfer_barat: '',
+    notes: ''
   });
 
   useEffect(() => { fetchData(); }, []);
@@ -29,61 +28,87 @@ const WaterLevels = () => {
   const fetchData = async () => {
     try {
       const token = localStorage.getItem('token');
-      const response = await axios.get(`${API_BASE_URL}/api/water-levels`, {
+      const response = await axios.get(`${API_BASE_URL}/api/water-level`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       setData(response.data.data || []);
-    } catch (error) {
-      toast.error('Failed to fetch water levels');
-    } finally {
-      setLoading(false);
-    }
+    } catch (error) { toast.error('Failed to fetch water level data'); }
+    finally { setLoading(false); }
   };
 
   const handleDelete = async (id) => {
-    if (!window.confirm('Yakin ingin menghapus data ini?')) return;
-    
+    if (!window.confirm('Yakin ingin menghapus?')) return;
     try {
       const token = localStorage.getItem('token');
-      await axios.delete(`${API_BASE_URL}/api/water-levels/${id}`, {
+      await axios.delete(`${API_BASE_URL}/api/water-level/${id}`, {
         headers: { Authorization: `Bearer ${token}` }
       });
-      toast.success('Data berhasil dihapus!');
+      toast.success('Data dihapus!');
       fetchData();
-    } catch (error) {
-      toast.error('Gagal menghapus data');
-    }
+    } catch (error) { toast.error('Gagal menghapus'); }
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
       const token = localStorage.getItem('token');
-      await axios.post(`${API_BASE_URL}/api/water-levels`, formData, {
+      await axios.post(`${API_BASE_URL}/api/water-level`, formData, {
         headers: { Authorization: `Bearer ${token}` }
       });
-      toast.success('Water level data berhasil disimpan!');
+      toast.success('Water Log berhasil disimpan!');
       setShowForm(false);
-      fetchData();
       setFormData({
-        shift_id: 1,
         reading_date: new Date().toISOString().split('T')[0],
-        reading_time: new Date().toTimeString().split(' ')[0],
-        tank_name: '',
-        tank_location: '',
-        capacity_liters: '',
-        current_level_liters: '',
-        level_percentage: '',
-        water_quality: 'good',
-        ph_level: '',
-        temperature: '',
-        status: 'normal',
-        notes: '',
+        reading_time: '07:00',
+        shift_id: 1,
+        stand_meter: '',
+        reservoir_1: 'M',
+        reservoir_2: 'M',
+        reservoir_3: 'M',
+        boster_timur: '',
+        boster_barat: '',
+        transfer_timur: '',
+        transfer_barat: '',
+        notes: ''
       });
+      fetchData();
     } catch (error) {
-      toast.error(error.response?.data?.error || 'Gagal menyimpan data');
+      console.error('Error:', error);
+      toast.error(error.response?.data?.error || 'Gagal menyimpan');
     }
   };
+
+  const handleChange = (field, value) => {
+    setFormData(prev => ({ ...prev, [field]: value }));
+  };
+
+  const ReservoirSelect = ({ label, field }) => (
+    <div>
+      <label className="block text-sm font-medium text-gray-700 mb-1">{label}</label>
+      <select 
+        value={formData[field]} 
+        onChange={(e) => handleChange(field, e.target.value)}
+        className="w-full rounded-lg border-gray-300 border p-2.5 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+      >
+        <option value="F">F - Full (Penuh)</option>
+        <option value="M">M - Medium (Sedang)</option>
+        <option value="L">L - Low (Rendah)</option>
+      </select>
+    </div>
+  );
+
+  const PressureInput = ({ label, field }) => (
+    <div>
+      <label className="block text-sm font-medium text-gray-700 mb-1">{label} (Bar)</label>
+      <input
+        type="number"
+        step="0.01"
+        value={formData[field]}
+        onChange={(e) => handleChange(field, e.target.value)}
+        className="w-full rounded-lg border-gray-300 border p-2.5 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+      />
+    </div>
+  );
 
   if (loading) {
     return (
@@ -97,130 +122,146 @@ const WaterLevels = () => {
     <div className="p-6">
       <div className="flex justify-between items-center mb-6">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">Water Levels</h1>
-          <p className="text-gray-600 mt-1">Tangki Air Monitoring System</p>
+          <h1 className="text-3xl font-bold text-gray-900">Water Log Sheet</h1>
+          <p className="text-gray-600 mt-1">Monitoring Tangki Air & Pressure</p>
         </div>
         <button
           onClick={() => setShowForm(!showForm)}
           className="bg-gradient-to-r from-blue-600 to-blue-700 text-white px-6 py-3 rounded-xl hover:from-blue-700 hover:to-blue-800 shadow-lg font-medium"
         >
-          {showForm ? '✕ Cancel' : '+ Add New Reading'}
+          {showForm ? '✕ Cancel' : '+ Add Water Log'}
         </button>
       </div>
 
       {showForm && (
         <div className="bg-white shadow-lg rounded-2xl border border-gray-100 p-6 mb-6">
-          <h2 className="text-xl font-semibold mb-4 text-gray-900">Add Water Level Reading</h2>
-          <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Date</label>
-              <input type="date" value={formData.reading_date} onChange={(e) => setFormData({ ...formData, reading_date: e.target.value })} className="w-full rounded-lg border-gray-300 border p-2.5" required />
+          <h2 className="text-xl font-semibold mb-4 text-gray-900">Add Water Log</h2>
+          <form onSubmit={handleSubmit} className="space-y-4">
+            {/* Header Info */}
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Tanggal</label>
+                <input type="date" value={formData.reading_date} onChange={(e) => handleChange('reading_date', e.target.value)} className="w-full rounded-lg border-gray-300 border p-2.5" required />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Waktu</label>
+                <input type="time" value={formData.reading_time} onChange={(e) => handleChange('reading_time', e.target.value)} className="w-full rounded-lg border-gray-300 border p-2.5" required />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Shift</label>
+                <select value={formData.shift_id} onChange={(e) => handleChange('shift_id', parseInt(e.target.value))} className="w-full rounded-lg border-gray-300 border p-2.5">
+                  <option value="1">Shift 1 (07:00-15:00)</option>
+                  <option value="2">Shift 2 (15:00-22:00)</option>
+                  <option value="3">Shift 3 (22:00-07:00)</option>
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Stand Meter</label>
+                <input type="number" step="0.01" value={formData.stand_meter} onChange={(e) => handleChange('stand_meter', e.target.value)} className="w-full rounded-lg border-gray-300 border p-2.5" required />
+              </div>
             </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Time</label>
-              <input type="time" value={formData.reading_time} onChange={(e) => setFormData({ ...formData, reading_time: e.target.value })} className="w-full rounded-lg border-gray-300 border p-2.5" required />
+
+            {/* Reservoir (3 kolom sesuai PDF) */}
+            <div className="border-t pt-4">
+              <h3 className="text-lg font-medium text-gray-900 mb-3">💧 Reservoir (F/M/L)</h3>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <ReservoirSelect label="Reservoir 1" field="reservoir_1" />
+                <ReservoirSelect label="Reservoir 2" field="reservoir_2" />
+                <ReservoirSelect label="Reservoir 3" field="reservoir_3" />
+              </div>
             </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Tank Name</label>
-              <input type="text" value={formData.tank_name} onChange={(e) => setFormData({ ...formData, tank_name: e.target.value })} className="w-full rounded-lg border-gray-300 border p-2.5" placeholder="e.g., Main Tank" required />
+
+            {/* Pressure Boster */}
+            <div className="border-t pt-4">
+              <h3 className="text-lg font-medium text-gray-900 mb-3"> Pressure Boster (Bar)</h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <PressureInput label="Boster Timur" field="boster_timur" />
+                <PressureInput label="Boster Barat" field="boster_barat" />
+              </div>
             </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Tank Location</label>
-              <input type="text" value={formData.tank_location} onChange={(e) => setFormData({ ...formData, tank_location: e.target.value })} className="w-full rounded-lg border-gray-300 border p-2.5" placeholder="e.g., Basement" required />
+
+            {/* Pressure Transfer */}
+            <div className="border-t pt-4">
+              <h3 className="text-lg font-medium text-gray-900 mb-3">🟢 Pressure Transfer (Bar)</h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <PressureInput label="Transfer Timur" field="transfer_timur" />
+                <PressureInput label="Transfer Barat" field="transfer_barat" />
+              </div>
             </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Capacity (Liters)</label>
-              <input type="number" value={formData.capacity_liters} onChange={(e) => setFormData({ ...formData, capacity_liters: e.target.value })} className="w-full rounded-lg border-gray-300 border p-2.5" required />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Current Level (Liters)</label>
-              <input type="number" value={formData.current_level_liters} onChange={(e) => setFormData({ ...formData, current_level_liters: e.target.value })} className="w-full rounded-lg border-gray-300 border p-2.5" required />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Level Percentage (%)</label>
-              <input type="number" step="0.01" value={formData.level_percentage} onChange={(e) => setFormData({ ...formData, level_percentage: e.target.value })} className="w-full rounded-lg border-gray-300 border p-2.5" required />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Water Quality</label>
-              <select value={formData.water_quality} onChange={(e) => setFormData({ ...formData, water_quality: e.target.value })} className="w-full rounded-lg border-gray-300 border p-2.5">
-                <option value="excellent">Excellent</option>
-                <option value="good">Good</option>
-                <option value="fair">Fair</option>
-                <option value="poor">Poor</option>
-              </select>
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">pH Level</label>
-              <input type="number" step="0.01" value={formData.ph_level} onChange={(e) => setFormData({ ...formData, ph_level: e.target.value })} className="w-full rounded-lg border-gray-300 border p-2.5" />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Temperature (°C)</label>
-              <input type="number" step="0.01" value={formData.temperature} onChange={(e) => setFormData({ ...formData, temperature: e.target.value })} className="w-full rounded-lg border-gray-300 border p-2.5" />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Status</label>
-              <select value={formData.status} onChange={(e) => setFormData({ ...formData, status: e.target.value })} className="w-full rounded-lg border-gray-300 border p-2.5">
-                <option value="normal">Normal</option>
-                <option value="warning">Warning</option>
-                <option value="critical">Critical</option>
-              </select>
-            </div>
-            <div>
+
+            {/* Notes */}
+            <div className="border-t pt-4">
               <label className="block text-sm font-medium text-gray-700 mb-1">Notes</label>
-              <input type="text" value={formData.notes} onChange={(e) => setFormData({ ...formData, notes: e.target.value })} className="w-full rounded-lg border-gray-300 border p-2.5" />
+              <textarea value={formData.notes} onChange={(e) => handleChange('notes', e.target.value)} className="w-full rounded-lg border-gray-300 border p-2.5" rows="2" />
             </div>
-            <div className="md:col-span-3">
-              <button type="submit" className="w-full bg-gradient-to-r from-blue-600 to-blue-700 text-white px-4 py-3 rounded-xl hover:from-blue-700 hover:to-blue-800 font-medium shadow-lg">
-                Save Water Level Reading
-              </button>
-            </div>
+
+            <button type="submit" className="w-full bg-gradient-to-r from-blue-600 to-blue-700 text-white px-4 py-3 rounded-xl hover:from-blue-700 hover:to-blue-800 font-medium shadow-lg">
+              Save Water Log
+            </button>
           </form>
         </div>
       )}
 
+      {/* Data Table */}
       <div className="bg-white shadow-lg rounded-2xl border border-gray-100 overflow-x-auto">
         <div className="px-6 py-5 border-b border-gray-200">
-          <h3 className="text-lg font-semibold text-gray-900">All Water Level Readings</h3>
+          <h3 className="text-lg font-semibold text-gray-900">All Water Logs</h3>
           <p className="text-sm text-gray-500 mt-1">{data.length} records found</p>
         </div>
         <table className="min-w-full divide-y divide-gray-200">
           <thead className="bg-gray-50">
             <tr>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Date</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Tank</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Location</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Level (%)</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Quality</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Actions</th>
+              <th className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase">Tanggal</th>
+              <th className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase">Waktu</th>
+              <th className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase">Shift</th>
+              <th className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase">Stand Meter</th>
+              <th className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase">Reservoir 1</th>
+              <th className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase">Reservoir 2</th>
+              <th className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase">Reservoir 3</th>
+              <th className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase">Boster Timur</th>
+              <th className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase">Boster Barat</th>
+              <th className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase">Transfer Timur</th>
+              <th className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase">Transfer Barat</th>
+              <th className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase">Actions</th>
             </tr>
           </thead>
           <tbody className="bg-white divide-y divide-gray-200">
             {data.length === 0 ? (
-              <tr><td colSpan="7" className="px-6 py-8 text-center text-gray-500">No water level readings yet.</td></tr>
+              <tr><td colSpan="12" className="px-6 py-8 text-center text-gray-500">No water logs yet.</td></tr>
             ) : (
               data.map((item) => (
                 <tr key={item.id} className="hover:bg-gray-50">
-                  <td className="px-6 py-4 whitespace-nowrap text-sm">{item.reading_date}</td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">{item.tank_name}</td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm">{item.tank_location}</td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">{item.level_percentage}%</td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm">{item.water_quality}</td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <span className={`px-3 py-1 inline-flex text-xs font-semibold rounded-full ${
-                      item.status === 'normal' ? 'bg-green-100 text-green-800' : 
-                      item.status === 'warning' ? 'bg-yellow-100 text-yellow-800' : 'bg-red-100 text-red-800'
-                    }`}>
-                      {item.status}
-                    </span>
+                  <td className="px-3 py-3 text-sm">{item.reading_date}</td>
+                  <td className="px-3 py-3 text-sm">{item.reading_time}</td>
+                  <td className="px-3 py-3 text-sm">{item.shift_name || `Shift ${item.shift_id}`}</td>
+                  <td className="px-3 py-3 text-sm font-mono">{item.stand_meter}</td>
+                  <td className="px-3 py-3 text-sm">
+                    <span className={`px-2 py-1 rounded-full text-xs font-semibold ${
+                      item.reservoir_1 === 'F' ? 'bg-green-100 text-green-800' :
+                      item.reservoir_1 === 'M' ? 'bg-yellow-100 text-yellow-800' :
+                      'bg-red-100 text-red-800'
+                    }`}>{item.reservoir_1}</span>
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <button
-                      onClick={() => handleDelete(item.id)}
-                      className="text-red-600 hover:text-red-900 font-medium"
-                    >
-                      ️ Delete
-                    </button>
+                  <td className="px-3 py-3 text-sm">
+                    <span className={`px-2 py-1 rounded-full text-xs font-semibold ${
+                      item.reservoir_2 === 'F' ? 'bg-green-100 text-green-800' :
+                      item.reservoir_2 === 'M' ? 'bg-yellow-100 text-yellow-800' :
+                      'bg-red-100 text-red-800'
+                    }`}>{item.reservoir_2}</span>
+                  </td>
+                  <td className="px-3 py-3 text-sm">
+                    <span className={`px-2 py-1 rounded-full text-xs font-semibold ${
+                      item.reservoir_3 === 'F' ? 'bg-green-100 text-green-800' :
+                      item.reservoir_3 === 'M' ? 'bg-yellow-100 text-yellow-800' :
+                      'bg-red-100 text-red-800'
+                    }`}>{item.reservoir_3}</span>
+                  </td>
+                  <td className="px-3 py-3 text-sm font-mono">{item.boster_timur} Bar</td>
+                  <td className="px-3 py-3 text-sm font-mono">{item.boster_barat} Bar</td>
+                  <td className="px-3 py-3 text-sm font-mono">{item.transfer_timur} Bar</td>
+                  <td className="px-3 py-3 text-sm font-mono">{item.transfer_barat} Bar</td>
+                  <td className="px-3 py-3">
+                    <button onClick={() => handleDelete(item.id)} className="text-red-600 hover:text-red-900 font-medium text-sm">Delete</button>
                   </td>
                 </tr>
               ))
@@ -232,4 +273,4 @@ const WaterLevels = () => {
   );
 };
 
-export default WaterLevels;
+export default WaterLevel;
