@@ -55,6 +55,5 @@ jobs:
         uses: azure/webapps-deploy@v3
         with:
           app-name: 'nirvana-mep-api-ffa0h4hsbtdkeucv'
-          slot-name: 'Production'
           publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE }}
           package: .
