@@ -32,66 +32,39 @@ router.get('/', authenticateToken, async (req, res) => {
 router.post('/', authenticateToken, async (req, res) => {
   try {
     const {
-      handover_date,
-      from_shift_id,
-      to_shift_id,
-      from_user,
-      to_user,
-      completed_tasks,
-      pending_tasks,
-      issues,
-      notes
+      handover_date, from_shift_id, to_shift_id,
+      from_user, to_user,
+      completed_tasks, pending_tasks, issues, notes
     } = req.body;
 
-    // AMBIL user_id DARI TOKEN
-    const user_id = req.user.id;
+    const user_id = req.user?.id || 1;
 
-    console.log('Shift Handover Create - User ID from token:', user_id);
+    console.log('🔄 Shift Handover - User ID:', user_id);
+    console.log('Data received:', req.body);
 
     const [result] = await db.query(`
       INSERT INTO shift_handover (
-        handover_date,
-        from_shift_id,
-        to_shift_id,
-        from_user_id,
-        to_user_id,
-        completed_tasks,
-        pending_tasks,
-        issues,
-        notes,
-        user_id
+        handover_date, from_shift_id, to_shift_id,
+        from_user, to_user,
+        completed_tasks, pending_tasks, issues, notes, user_id
       ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `, [
-      handover_date,
-      from_shift_id || 1,
-      to_shift_id || 2,
-      user_id, // from_user_id
-      user_id, // to_user_id (bisa diganti nanti)
-      completed_tasks || '',
-      pending_tasks || '',
-      issues || '',
-      notes || '',
-      user_id // ← INI YANG PENTING!
+      handover_date, from_shift_id || 1, to_shift_id || 2,
+      from_user || '', to_user || '',
+      completed_tasks || '', pending_tasks || '', issues || '', notes || '', user_id
     ]);
 
-    const [newHandover] = await db.query(
-      'SELECT * FROM shift_handover WHERE id = ?',
-      [result.insertId]
-    );
+    const [newHandover] = await db.query('SELECT * FROM shift_handover WHERE id = ?', [result.insertId]);
 
-    console.log('Shift Handover Created:', newHandover[0]);
+    console.log('✅ Handover created:', newHandover[0]);
 
-    res.status(201).json({
-      success: true,
-      message: 'Shift handover created successfully',
-      data: newHandover[0]
-    });
-
+    res.status(201).json({ success: true, message: 'Handover saved', data: newHandover[0] });
   } catch (error) {
-    console.error('Shift Handover Create Error:', error);
-    res.status(500).json({
-      success: false,
-      error: error.message
+    console.error('❌ Handover Error:', error.message);
+    res.status(500).json({ 
+      success: false, 
+      error: error.message,
+      message: 'Failed to save handover'
     });
   }
 });

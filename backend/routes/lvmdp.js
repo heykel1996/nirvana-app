@@ -109,11 +109,22 @@ router.post('/', authenticateToken, async (req, res) => {
 // DELETE LVMDP reading
 router.delete('/:id', authenticateToken, async (req, res) => {
   try {
+    console.log('🗑️ LVMDP Delete - ID:', req.params.id);
+    
     await db.query('DELETE FROM lvmdp_readings WHERE id = ?', [req.params.id]);
-    res.json({ success: true, message: 'Deleted successfully' });
+    
+    console.log('✅ LVMDP deleted successfully');
+    
+    res.json({ 
+      success: true, 
+      message: 'Data berhasil dihapus' 
+    });
   } catch (error) {
-    console.error('LVMDP Delete Error:', error);
-    res.status(500).json({ success: false, error: error.message });
+    console.error('❌ LVMDP Delete Error:', error);
+    res.status(500).json({ 
+      success: false, 
+      error: error.message 
+    });
   }
 });
 
