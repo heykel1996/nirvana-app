@@ -7,6 +7,8 @@ const router = express.Router();
 // GET all check sheets
 router.get('/', authenticateToken, async (req, res) => {
   try {
+    console.log('📊 Check Sheets GET - User:', req.user);
+    
     const [rows] = await db.query(`
       SELECT c.*, s.shift_name, u.full_name as user_name
       FROM building_equipment_check c
@@ -15,203 +17,141 @@ router.get('/', authenticateToken, async (req, res) => {
       ORDER BY c.reading_date DESC, c.shift_id ASC
       LIMIT 100
     `);
+    
+    console.log('✅ Check Sheets loaded:', rows.length, 'rows');
     res.json({ success: true, data: rows });
   } catch (error) {
-    console.error('Check Sheets Get Error:', error);
-    res.status(500).json({ success: false, error: error.message });
+    console.error('❌ Check Sheets GET Error:', error.message);
+    res.status(500).json({ 
+      success: false, 
+      error: error.message,
+      message: 'Failed to load check sheets'
+    });
   }
 });
 
 // POST create check sheet
 router.post('/', authenticateToken, async (req, res) => {
   try {
-    const {
-      reading_date,
-      shift_id,
-      water_level_status,
-      motor_eq1_status,
-      motor_eq2_status,
-      motor_boster1_status,
-      motor_boster2_status,
-      buzzer_status,
-      screen_status,
-      exhaust_fan_status,
-      pressure_air_status,
-      chiller_dosing_status,
-      water_level_dosing_status,
-      floor_light_status,
-      facade_light_status,
-      swimming_light_status,
-      light_b1_status,
-      light_b2_status,
-      stairs_a_status,
-      stairs_b_status,
-      radiator_status,
-      jockey_pump_status,
-      hydrant_pump_status,
-      hydrant_diesel_status,
-      sumpit1_status,
-      sumpit2_status,
-      sumpit3_status,
-      sumpit4_status,
-      panel_genset_status,
-      elevator1_status,
-      elevator2_status,
-      elevator3_status,
-      elevator4_status,
-      elevator5_status,
-      pompa_del_a_status,
-      pompa_del_b_status,
-      pompa_bos1a_status,
-      pompa_bos2a_status,
-      pompa_bos1b_status,
-      pompa_bos2b_status,
-      ground_tank_status,
-      roof_tank_a_status,
-      roof_tank_b_status,
-      air_alarm_status,
-      sound_system_status,
-      access_control_status,
-      cctv_status,
-      easv_status,
-      p_pabx_status,
-      tv_cable_status,
-      general_remarks
-    } = req.body;
+    const data = req.body;
+    const user_id = req.user?.id || 1;
 
-    // AMBIL user_id DARI TOKEN
-    const user_id = req.user.id;
+    console.log('📝 Check Sheets POST - User ID:', user_id);
+    console.log('Shift ID:', data.shift_id);
+    console.log('Data keys:', Object.keys(data));
 
-    console.log('Check Sheets Create - User ID from token:', user_id);
+    // Build dynamic INSERT based on shift_id
+    let columns = ['reading_date', 'shift_id', 'user_id'];
+    let values = [data.reading_date, data.shift_id || 1, user_id];
+    let placeholders = ['?', '?', '?'];
 
-    const [result] = await db.query(`
-      INSERT INTO building_equipment_check (
-        reading_date,
-        shift_id,
-        user_id,
-        water_level_status,
-        motor_eq1_status,
-        motor_eq2_status,
-        motor_boster1_status,
-        motor_boster2_status,
-        buzzer_status,
-        screen_status,
-        exhaust_fan_status,
-        pressure_air_status,
-        chiller_dosing_status,
-        water_level_dosing_status,
-        floor_light_status,
-        facade_light_status,
-        swimming_light_status,
-        light_b1_status,
-        light_b2_status,
-        stairs_a_status,
-        stairs_b_status,
-        radiator_status,
-        jockey_pump_status,
-        hydrant_pump_status,
-        hydrant_diesel_status,
-        sumpit1_status,
-        sumpit2_status,
-        sumpit3_status,
-        sumpit4_status,
-        panel_genset_status,
-        elevator1_status,
-        elevator2_status,
-        elevator3_status,
-        elevator4_status,
-        elevator5_status,
-        pompa_del_a_status,
-        pompa_del_b_status,
-        pompa_bos1a_status,
-        pompa_bos2a_status,
-        pompa_bos1b_status,
-        pompa_bos2b_status,
-        ground_tank_status,
-        roof_tank_a_status,
-        roof_tank_b_status,
-        air_alarm_status,
-        sound_system_status,
-        access_control_status,
-        cctv_status,
-        easv_status,
-        p_pabx_status,
-        tv_cable_status,
-        general_remarks
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-    `, [
-      reading_date,
-      shift_id || 1,
-      user_id, // ← INI YANG PENTING!
-      water_level_status || 'B',
-      motor_eq1_status || 'B',
-      motor_eq2_status || 'B',
-      motor_boster1_status || 'B',
-      motor_boster2_status || 'B',
-      buzzer_status || 'B',
-      screen_status || 'B',
-      exhaust_fan_status || 'B',
-      pressure_air_status || 'B',
-      chiller_dosing_status || 'B',
-      water_level_dosing_status || 'B',
-      floor_light_status || 'B',
-      facade_light_status || 'B',
-      swimming_light_status || 'B',
-      light_b1_status || 'B',
-      light_b2_status || 'B',
-      stairs_a_status || 'B',
-      stairs_b_status || 'B',
-      radiator_status || 'B',
-      jockey_pump_status || 'B',
-      hydrant_pump_status || 'B',
-      hydrant_diesel_status || 'B',
-      sumpit1_status || 'B',
-      sumpit2_status || 'B',
-      sumpit3_status || 'B',
-      sumpit4_status || 'B',
-      panel_genset_status || 'B',
-      elevator1_status || 'B',
-      elevator2_status || 'B',
-      elevator3_status || 'B',
-      elevator4_status || 'B',
-      elevator5_status || 'B',
-      pompa_del_a_status || 'B',
-      pompa_del_b_status || 'B',
-      pompa_bos1a_status || 'B',
-      pompa_bos2a_status || 'B',
-      pompa_bos1b_status || 'B',
-      pompa_bos2b_status || 'B',
-      ground_tank_status || 'B',
-      roof_tank_a_status || 'B',
-      roof_tank_b_status || 'B',
-      air_alarm_status || 'B',
-      sound_system_status || 'B',
-      access_control_status || 'B',
-      cctv_status || 'B',
-      easv_status || 'B',
-      p_pabx_status || 'B',
-      tv_cable_status || 'B',
-      general_remarks || ''
-    ]);
+    // Shift 1 fields
+    if (data.shift_id == 1) {
+      const shift1Fields = [
+        'lvmdp_status', 'capacitor_bank_status', 'hvmdp_status',
+        'transformer_temp', 'transformer_vol', 'temperatur_status',
+        'volume_status', 'volume_solar_harian',
+        'battery_charger_1', 'battery_24vdc_1',
+        'volume_solar_utama', 'battery_charger_2', 'battery_24vdc_2',
+        'catat_meter_pam', 'catat_meter_deep_well',
+        'pompa_delivery_ab', 'pompa_boster_12a', 'pompa_boster_12b',
+        'ground_tank', 'roof_tank_a', 'roof_tank_b'
+      ];
+      shift1Fields.forEach(field => {
+        columns.push(field);
+        values.push(data[field] || '-');
+        placeholders.push('?');
+      });
+    }
 
-    const [newSheet] = await db.query(
-      'SELECT * FROM building_equipment_check WHERE id = ?',
-      [result.insertId]
-    );
+    // Shift 2 fields
+    if (data.shift_id == 2) {
+      const shift2Fields = [
+        'floor_ceiling_light', 'facade_light', 'swimming_light',
+        'light_b1', 'light_b2', 'stairs_zone_a', 'stairs_zone_b',
+        'radiator_water', 'battery_charger_s2', 'battery_24vdc_s2',
+        'jockey_pump', 'hydrant_pump', 'hydrant_diesel',
+        'sumpit_pump_1', 'sumpit_pump_2', 'sumpit_pump_3', 'sumpit_pump_4'
+      ];
+      shift2Fields.forEach(field => {
+        columns.push(field);
+        values.push(data[field] || '-');
+        placeholders.push('?');
+      });
+    }
 
-    console.log('Check Sheet Created:', newSheet[0]);
+    // Shift 3 fields
+    if (data.shift_id == 3) {
+      const shift3Fields = [
+        'panel_control_genset', 'battery_charger_s3', 'battery_24vdc_s3',
+        'elevator_1', 'elevator_2', 'elevator_3', 'elevator_4', 'elevator_5',
+        'pompa_delivery_ab_s3', 'pompa_boster_12a_s3', 'pompa_boster_12b_s3',
+        'ground_tank_s3', 'roof_tank_a_s3', 'roof_tank_b_s3',
+        'jocky_pompa_s3', 'hydrant_pompa_s3', 'hydrant_diesel_s3',
+        'fire_alarm', 'sound_system', 'access_control', 'cctv',
+        'bas_b', 'ip_pabx', 'tv_cable'
+      ];
+      shift3Fields.forEach(field => {
+        columns.push(field);
+        values.push(data[field] || '-');
+        placeholders.push('?');
+      });
+    }
+
+    // General shift fields (shift_id = 4)
+    if (data.shift_id == 4) {
+      const generalFields = [
+        'water_level_07', 'motor_eq1_07', 'motor_eq2_07',
+        'motor_boster1_07', 'motor_boster2_07', 'buzzer_07',
+        'bar_screen_07', 'exhaust_fan_07', 'frlss_air_07',
+        'chiller_dosing_07', 'water_level_dosing_07',
+        'water_level_18', 'motor_eq1_18', 'motor_eq2_18',
+        'motor_boster1_18', 'motor_boster2_18', 'buzzer_18',
+        'bar_screen_18', 'exhaust_fan_18', 'frlss_air_18',
+        'chiller_dosing_18', 'water_level_dosing_18'
+      ];
+      generalFields.forEach(field => {
+        columns.push(field);
+        values.push(data[field] || '-');
+        placeholders.push('?');
+      });
+    }
+
+    // Common fields
+    if (data.general_remarks !== undefined) {
+      columns.push('general_remarks');
+      values.push(data.general_remarks || '');
+      placeholders.push('?');
+    }
+    if (data.petugas !== undefined) {
+      columns.push('petugas_general');
+      values.push(data.petugas || '');
+      placeholders.push('?');
+    }
+
+    const sql = `INSERT INTO building_equipment_check (${columns.join(', ')}) VALUES (${placeholders.join(', ')})`;
+    
+    console.log('SQL:', sql);
+    console.log('Values:', values);
+
+    const [result] = await db.query(sql, values);
+    const [newSheet] = await db.query('SELECT * FROM building_equipment_check WHERE id = ?', [result.insertId]);
+
+    console.log('✅ Check Sheet Created:', newSheet[0]);
 
     res.status(201).json({
       success: true,
-      message: 'Check sheet created successfully',
+      message: 'Check sheet saved successfully',
       data: newSheet[0]
     });
 
   } catch (error) {
-    console.error('Check Sheets Create Error:', error);
-    res.status(500).json({
-      success: false,
-      error: error.message
+    console.error('❌ Check Sheets POST Error:', error.message);
+    console.error('Stack:', error.stack);
+    res.status(500).json({ 
+      success: false, 
+      error: error.message,
+      message: 'Failed to save check sheet'
     });
   }
 });
@@ -220,9 +160,8 @@ router.post('/', authenticateToken, async (req, res) => {
 router.delete('/:id', authenticateToken, async (req, res) => {
   try {
     await db.query('DELETE FROM building_equipment_check WHERE id = ?', [req.params.id]);
-    res.json({ success: true, message: 'Deleted successfully' });
+    res.json({ success: true, message: 'Deleted' });
   } catch (error) {
-    console.error('Check Sheets Delete Error:', error);
     res.status(500).json({ success: false, error: error.message });
   }
 });
