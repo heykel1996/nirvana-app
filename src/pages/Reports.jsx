@@ -2,7 +2,7 @@ import { useState } from "react";
 import { reportAPI } from "../services/api"; // Pastikan path sesuai struktur proyek Anda
 import toast from "react-hot-toast";
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://nirvana-mep-api-ffa0h4hsbtdkeucv.southeastasia-01.azurewebsites.net';
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://nirvana-mep-api-ffa0h4hsbtdkeucv.southeastasia-01.azurewebsites.net';
 
 const Reports = () => {
   const [reportType, setReportType] = useState("daily");
