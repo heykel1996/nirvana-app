@@ -36,16 +36,16 @@ router.post('/', authenticateToken, async (req, res) => {
     const data = req.body;
     const user_id = req.user?.id || 1;
 
-    console.log('📝 Check Sheets POST - User ID:', user_id);
+    console.log(' Check Sheets POST - User ID:', user_id);
     console.log('Shift ID:', data.shift_id);
-    console.log('Data keys:', Object.keys(data));
+    console.log('Petugas:', data.petugas);
 
     // Build dynamic INSERT based on shift_id
     let columns = ['reading_date', 'shift_id', 'user_id'];
     let values = [data.reading_date, data.shift_id || 1, user_id];
     let placeholders = ['?', '?', '?'];
 
-    // Shift 1 fields
+    // === SHIFT 1 (07:00-15:00) - Electrical & Pump ===
     if (data.shift_id == 1) {
       const shift1Fields = [
         'lvmdp_status', 'capacitor_bank_status', 'hvmdp_status',
@@ -64,7 +64,7 @@ router.post('/', authenticateToken, async (req, res) => {
       });
     }
 
-    // Shift 2 fields
+    // === SHIFT 2 (15:00-22:00) - Lighting & Pump ===
     if (data.shift_id == 2) {
       const shift2Fields = [
         'floor_ceiling_light', 'facade_light', 'swimming_light',
@@ -80,7 +80,7 @@ router.post('/', authenticateToken, async (req, res) => {
       });
     }
 
-    // Shift 3 fields
+    // === SHIFT 3 (22:00-07:00) - Elevator & Security ===
     if (data.shift_id == 3) {
       const shift3Fields = [
         'panel_control_genset', 'battery_charger_s3', 'battery_24vdc_s3',
@@ -98,7 +98,7 @@ router.post('/', authenticateToken, async (req, res) => {
       });
     }
 
-    // General shift fields (shift_id = 4)
+    // === GENERAL SHIFT (00:00-07:00) - 2 Kolom Waktu (07:00 & 18:00) ===
     if (data.shift_id == 4) {
       const generalFields = [
         'water_level_07', 'motor_eq1_07', 'motor_eq2_07',
@@ -117,17 +117,14 @@ router.post('/', authenticateToken, async (req, res) => {
       });
     }
 
-    // Common fields
-    if (data.general_remarks !== undefined) {
-      columns.push('general_remarks');
-      values.push(data.general_remarks || '');
-      placeholders.push('?');
-    }
-    if (data.petugas !== undefined) {
-      columns.push('petugas');
-      values.push(data.petugas || '');
-      placeholders.push('?');
-    }
+    // === Common fields: petugas & remarks ===
+    columns.push('petugas');
+    values.push(data.petugas || '');
+    placeholders.push('?');
+
+    columns.push('general_remarks');
+    values.push(data.general_remarks || '');
+    placeholders.push('?');
 
     const sql = `INSERT INTO building_equipment_check (${columns.join(', ')}) VALUES (${placeholders.join(', ')})`;
     
@@ -137,7 +134,7 @@ router.post('/', authenticateToken, async (req, res) => {
     const [result] = await db.query(sql, values);
     const [newSheet] = await db.query('SELECT * FROM building_equipment_check WHERE id = ?', [result.insertId]);
 
-    console.log('✅ Check Sheet Created:', newSheet[0]);
+    console.log('✅ Check Sheet Created:', newSheet[0]?.id);
 
     res.status(201).json({
       success: true,
@@ -151,7 +148,7 @@ router.post('/', authenticateToken, async (req, res) => {
     res.status(500).json({ 
       success: false, 
       error: error.message,
-      message: 'Failed to save check sheet'
+      message: 'Failed to save check sheet: ' + error.message
     });
   }
 });

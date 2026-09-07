@@ -125,6 +125,7 @@ const CheckSheets = () => {
     }
   };
 
+  // Status options sesuai PDF
   const statusOptions = [
     { value: '-', label: '-' },
     { value: 'B', label: 'B (Baik)' },
@@ -141,14 +142,28 @@ const CheckSheets = () => {
     { value: 'A', label: 'A (Auto)' }
   ];
 
-  const SelectField = ({ label, name, value }) => (
+  const waterLevelOptions = [
+    { value: '-', label: '-' },
+    { value: 'F', label: 'F (Full)' },
+    { value: 'M', label: 'M (Medium)' },
+    { value: 'L', label: 'L (Low)' }
+  ];
+
+  const SelectField = ({ label, name, value, options = statusOptions }) => (
     <div className="mb-2">
       <label className="block text-xs font-medium mb-1 text-gray-700">{label}</label>
-      <select name={name} value={value} onChange={handleChange} className="w-full border border-gray-300 rounded px-2 py-1.5 text-sm">
-        {statusOptions.map(opt => (
+      <select name={name} value={value} onChange={handleChange} className="w-full border border-gray-300 rounded px-2 py-1.5 text-sm focus:ring-2 focus:ring-blue-500">
+        {options.map(opt => (
           <option key={opt.value} value={opt.value}>{opt.label}</option>
         ))}
       </select>
+    </div>
+  );
+
+  const InputField = ({ label, name, value, placeholder }) => (
+    <div className="mb-2">
+      <label className="block text-xs font-medium mb-1 text-gray-700">{label}</label>
+      <input type="text" name={name} value={value} onChange={handleChange} placeholder={placeholder} className="w-full border border-gray-300 rounded px-2 py-1.5 text-sm focus:ring-2 focus:ring-blue-500" />
     </div>
   );
 
@@ -156,10 +171,7 @@ const CheckSheets = () => {
     <div className="p-6">
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-2xl font-bold">Building Equipment Check Sheet</h1>
-        <button
-          onClick={() => setShowForm(!showForm)}
-          className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700"
-        >
+        <button onClick={() => setShowForm(!showForm)} className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700">
           {showForm ? 'Tutup Form' : '+ Tambah Check Sheet'}
         </button>
       </div>
@@ -179,43 +191,73 @@ const CheckSheets = () => {
                 <option value={1}>Shift 1 (07:00-15:00)</option>
                 <option value={2}>Shift 2 (15:00-22:00)</option>
                 <option value={3}>Shift 3 (22:00-07:00)</option>
-                <option value={4}>General (07:00-07:00)</option>
+                <option value={4}>General (00:00-07:00)</option>
               </select>
             </div>
             <div>
               <label className="block text-sm font-medium mb-1">Petugas</label>
-              <input type="text" name="petugas" value={formData.petugas} onChange={handleChange} className="w-full border rounded-lg px-3 py-2" placeholder="Nama petugas" />
+              <input type="text" name="petugas" value={formData.petugas} onChange={handleChange} className="w-full border rounded-lg px-3 py-2" placeholder="Nama petugas" required />
             </div>
           </div>
 
-          {/* Shift 1 */}
+          {/* ========== SHIFT 1: 07:00-15:00 ========== */}
           {shiftId === 1 && (
             <div className="border-t pt-4">
               <h3 className="text-lg font-bold mb-3 text-blue-600">Shift 1 Equipment (07:00-15:00)</h3>
-              <div className="grid grid-cols-3 gap-3">
-                <SelectField label="LVMDP" name="lvmdp_status" value={formData.lvmdp_status} />
-                <SelectField label="Capacitor Bank" name="capacitor_bank_status" value={formData.capacitor_bank_status} />
-                <SelectField label="HVMDP" name="hvmdp_status" value={formData.hvmdp_status} />
-                <SelectField label="Battery Charger 1" name="battery_charger_1" value={formData.battery_charger_1} />
-                <SelectField label="Battery 24VDC 1" name="battery_24vdc_1" value={formData.battery_24vdc_1} />
-                <SelectField label="Battery Charger 2" name="battery_charger_2" value={formData.battery_charger_2} />
-                <SelectField label="Battery 24VDC 2" name="battery_24vdc_2" value={formData.battery_24vdc_2} />
-                <SelectField label="Pompa Delivery A&B" name="pompa_delivery_ab" value={formData.pompa_delivery_ab} />
-                <SelectField label="Pompa Boster 1-2 (A)" name="pompa_boster_12a" value={formData.pompa_boster_12a} />
-                <SelectField label="Pompa Boster 1-2 (B)" name="pompa_boster_12b" value={formData.pompa_boster_12b} />
-                <SelectField label="Ground Tank" name="ground_tank" value={formData.ground_tank} />
-                <SelectField label="Roof Tank A" name="roof_tank_a" value={formData.roof_tank_a} />
-                <SelectField label="Roof Tank B" name="roof_tank_b" value={formData.roof_tank_b} />
+              
+              <div className="mb-4">
+                <h4 className="font-semibold text-sm mb-2 text-gray-700">Catat Meter Listrik PLN</h4>
+                <div className="grid grid-cols-3 gap-3">
+                  <SelectField label="LVMDP" name="lvmdp_status" value={formData.lvmdp_status} />
+                  <SelectField label="Capacitor Bank" name="capacitor_bank_status" value={formData.capacitor_bank_status} />
+                  <SelectField label="HVMDP" name="hvmdp_status" value={formData.hvmdp_status} />
+                </div>
+              </div>
+
+              <div className="mb-4">
+                <h4 className="font-semibold text-sm mb-2 text-gray-700">Transformer</h4>
+                <div className="grid grid-cols-3 gap-3">
+                  <InputField label="Transformer Temp" name="transformer_temp" value={formData.transformer_temp} placeholder="°C" />
+                  <InputField label="Transformer Volt" name="transformer_vol" value={formData.transformer_vol} placeholder="Volt" />
+                  <InputField label="Temperatur" name="temperatur_status" value={formData.temperatur_status} />
+                </div>
+              </div>
+
+              <div className="mb-4">
+                <h4 className="font-semibold text-sm mb-2 text-gray-700">Volume & Solar</h4>
+                <div className="grid grid-cols-3 gap-3">
+                  <InputField label="Volume" name="volume_status" value={formData.volume_status} />
+                  <InputField label="Volume Solar Harian" name="volume_solar_harian" value={formData.volume_solar_harian} />
+                  <SelectField label="Battery Charger 1" name="battery_charger_1" value={formData.battery_charger_1} />
+                  <SelectField label="Battery 24VDC 1" name="battery_24vdc_1" value={formData.battery_24vdc_1} />
+                  <InputField label="Volume Solar Utama" name="volume_solar_utama" value={formData.volume_solar_utama} />
+                  <SelectField label="Battery Charger 2" name="battery_charger_2" value={formData.battery_charger_2} />
+                  <SelectField label="Battery 24VDC 2" name="battery_24vdc_2" value={formData.battery_24vdc_2} />
+                </div>
+              </div>
+
+              <div className="mb-4">
+                <h4 className="font-semibold text-sm mb-2 text-gray-700">Meter & Pompa</h4>
+                <div className="grid grid-cols-3 gap-3">
+                  <InputField label="Catat Meter PAM" name="catat_meter_pam" value={formData.catat_meter_pam} />
+                  <InputField label="Catat Meter Deep Well" name="catat_meter_deep_well" value={formData.catat_meter_deep_well} />
+                  <SelectField label="Pompa Delivery A&B" name="pompa_delivery_ab" value={formData.pompa_delivery_ab} />
+                  <SelectField label="Pompa Boster 1-2 (A)" name="pompa_boster_12a" value={formData.pompa_boster_12a} />
+                  <SelectField label="Pompa Boster 1-2 (B)" name="pompa_boster_12b" value={formData.pompa_boster_12b} />
+                  <SelectField label="Ground Tank" name="ground_tank" value={formData.ground_tank} />
+                  <SelectField label="Roof Tank A" name="roof_tank_a" value={formData.roof_tank_a} />
+                  <SelectField label="Roof Tank B" name="roof_tank_b" value={formData.roof_tank_b} />
+                </div>
               </div>
             </div>
           )}
 
-          {/* Shift 2 */}
+          {/* ========== SHIFT 2: 15:00-22:00 ========== */}
           {shiftId === 2 && (
             <div className="border-t pt-4">
               <h3 className="text-lg font-bold mb-3 text-green-600">Shift 2 Equipment (15:00-22:00)</h3>
               <div className="grid grid-cols-3 gap-3">
-                <SelectField label="Floor Ceiling Light" name="floor_ceiling_light" value={formData.floor_ceiling_light} />
+                <SelectField label="Floor Ceiling Light (GFF)" name="floor_ceiling_light" value={formData.floor_ceiling_light} />
                 <SelectField label="Facade Light" name="facade_light" value={formData.facade_light} />
                 <SelectField label="Swimming Light" name="swimming_light" value={formData.swimming_light} />
                 <SelectField label="Light B1" name="light_b1" value={formData.light_b1} />
@@ -223,6 +265,8 @@ const CheckSheets = () => {
                 <SelectField label="Stairs Zone A" name="stairs_zone_a" value={formData.stairs_zone_a} />
                 <SelectField label="Stairs Zone B" name="stairs_zone_b" value={formData.stairs_zone_b} />
                 <SelectField label="Radiator Water" name="radiator_water" value={formData.radiator_water} />
+                <SelectField label="Battery Charger" name="battery_charger_s2" value={formData.battery_charger_s2} />
+                <SelectField label="Battery 24VDC" name="battery_24vdc_s2" value={formData.battery_24vdc_s2} />
                 <SelectField label="Jockey Pump" name="jockey_pump" value={formData.jockey_pump} />
                 <SelectField label="Hydrant Pump" name="hydrant_pump" value={formData.hydrant_pump} />
                 <SelectField label="Hydrant Diesel" name="hydrant_diesel" value={formData.hydrant_diesel} />
@@ -234,36 +278,50 @@ const CheckSheets = () => {
             </div>
           )}
 
-          {/* Shift 3 */}
+          {/* ========== SHIFT 3: 22:00-07:00 ========== */}
           {shiftId === 3 && (
             <div className="border-t pt-4">
               <h3 className="text-lg font-bold mb-3 text-purple-600">Shift 3 Equipment (22:00-07:00)</h3>
               <div className="grid grid-cols-3 gap-3">
                 <SelectField label="Panel Control Genset" name="panel_control_genset" value={formData.panel_control_genset} />
+                <SelectField label="Battery Charger" name="battery_charger_s3" value={formData.battery_charger_s3} />
+                <SelectField label="Battery 24VDC" name="battery_24vdc_s3" value={formData.battery_24vdc_s3} />
                 <SelectField label="Elevator 1" name="elevator_1" value={formData.elevator_1} />
                 <SelectField label="Elevator 2" name="elevator_2" value={formData.elevator_2} />
                 <SelectField label="Elevator 3" name="elevator_3" value={formData.elevator_3} />
                 <SelectField label="Elevator 4" name="elevator_4" value={formData.elevator_4} />
                 <SelectField label="Elevator 5" name="elevator_5" value={formData.elevator_5} />
+                <SelectField label="Pompa Delivery A&B" name="pompa_delivery_ab_s3" value={formData.pompa_delivery_ab_s3} />
+                <SelectField label="Pompa Boster 1-2 (A)" name="pompa_boster_12a_s3" value={formData.pompa_boster_12a_s3} />
+                <SelectField label="Pompa Boster 1-2 (B)" name="pompa_boster_12b_s3" value={formData.pompa_boster_12b_s3} />
+                <SelectField label="Ground Tank" name="ground_tank_s3" value={formData.ground_tank_s3} />
+                <SelectField label="Roof Tank A" name="roof_tank_a_s3" value={formData.roof_tank_a_s3} />
+                <SelectField label="Roof Tank B" name="roof_tank_b_s3" value={formData.roof_tank_b_s3} />
+                <SelectField label="Jocky Pompa" name="jocky_pompa_s3" value={formData.jocky_pompa_s3} />
+                <SelectField label="Hydrant Pompa" name="hydrant_pompa_s3" value={formData.hydrant_pompa_s3} />
+                <SelectField label="Hydrant Diesel" name="hydrant_diesel_s3" value={formData.hydrant_diesel_s3} />
                 <SelectField label="Fire Alarm" name="fire_alarm" value={formData.fire_alarm} />
                 <SelectField label="Sound System" name="sound_system" value={formData.sound_system} />
                 <SelectField label="Access Control" name="access_control" value={formData.access_control} />
                 <SelectField label="CCTV" name="cctv" value={formData.cctv} />
+                <SelectField label="BAS B" name="bas_b" value={formData.bas_b} />
                 <SelectField label="IP-PABX" name="ip_pabx" value={formData.ip_pabx} />
                 <SelectField label="TV Cable" name="tv_cable" value={formData.tv_cable} />
               </div>
             </div>
           )}
 
-          {/* General Shift */}
+          {/* ========== GENERAL SHIFT: 00:00-07:00 - 2 Kolom Waktu ========== */}
           {shiftId === 4 && (
             <div className="border-t pt-4">
-              <h3 className="text-lg font-bold mb-3 text-orange-600">General Shift (07:00-07:00) - 2 Kolom Waktu</h3>
+              <h3 className="text-lg font-bold mb-3 text-orange-600">General Shift (00:00-07:00) - 2 Kolom Waktu</h3>
+              
               <div className="grid grid-cols-2 gap-4">
+                {/* Kolom 07:00 */}
                 <div className="border rounded-lg p-3 bg-blue-50">
-                  <h4 className="font-bold text-center mb-2 text-blue-700">⏰ Waktu: 07:00</h4>
+                  <h4 className="font-bold text-center mb-2 text-blue-700"> Waktu: 07:00</h4>
                   <div className="grid grid-cols-1 gap-2">
-                    <SelectField label="Water Level" name="water_level_07" value={formData.water_level_07} />
+                    <SelectField label="Water Level" name="water_level_07" value={formData.water_level_07} options={waterLevelOptions} />
                     <SelectField label="Motor Equalizing 1" name="motor_eq1_07" value={formData.motor_eq1_07} />
                     <SelectField label="Motor Equalizing 2" name="motor_eq2_07" value={formData.motor_eq2_07} />
                     <SelectField label="Motor Boster 1" name="motor_boster1_07" value={formData.motor_boster1_07} />
@@ -272,15 +330,16 @@ const CheckSheets = () => {
                     <SelectField label="Bar Screen" name="bar_screen_07" value={formData.bar_screen_07} />
                     <SelectField label="Exhaust Fan" name="exhaust_fan_07" value={formData.exhaust_fan_07} />
                     <SelectField label="FRLSS Air" name="frlss_air_07" value={formData.frlss_air_07} />
-                    <SelectField label="Chiller/Dosing Pump" name="chiller_dosing_07" value={formData.chiller_dosing_07} />
-                    <SelectField label="Water Level Dosing Pump" name="water_level_dosing_07" value={formData.water_level_dosing_07} />
+                    <SelectField label="Chilo/Dossing Pump" name="chiller_dosing_07" value={formData.chiller_dosing_07} />
+                    <SelectField label="Water Level Dossing Pump" name="water_level_dosing_07" value={formData.water_level_dosing_07} options={waterLevelOptions} />
                   </div>
                 </div>
 
+                {/* Kolom 18:00 */}
                 <div className="border rounded-lg p-3 bg-green-50">
                   <h4 className="font-bold text-center mb-2 text-green-700">⏰ Waktu: 18:00</h4>
                   <div className="grid grid-cols-1 gap-2">
-                    <SelectField label="Water Level" name="water_level_18" value={formData.water_level_18} />
+                    <SelectField label="Water Level" name="water_level_18" value={formData.water_level_18} options={waterLevelOptions} />
                     <SelectField label="Motor Equalizing 1" name="motor_eq1_18" value={formData.motor_eq1_18} />
                     <SelectField label="Motor Equalizing 2" name="motor_eq2_18" value={formData.motor_eq2_18} />
                     <SelectField label="Motor Boster 1" name="motor_boster1_18" value={formData.motor_boster1_18} />
@@ -289,8 +348,8 @@ const CheckSheets = () => {
                     <SelectField label="Bar Screen" name="bar_screen_18" value={formData.bar_screen_18} />
                     <SelectField label="Exhaust Fan" name="exhaust_fan_18" value={formData.exhaust_fan_18} />
                     <SelectField label="FRLSS Air" name="frlss_air_18" value={formData.frlss_air_18} />
-                    <SelectField label="Chiller/Dosing Pump" name="chiller_dosing_18" value={formData.chiller_dosing_18} />
-                    <SelectField label="Water Level Dosing Pump" name="water_level_dosing_18" value={formData.water_level_dosing_18} />
+                    <SelectField label="Chilo/Dossing Pump" name="chiller_dosing_18" value={formData.chiller_dosing_18} />
+                    <SelectField label="Water Level Dossing Pump" name="water_level_dosing_18" value={formData.water_level_dosing_18} options={waterLevelOptions} />
                   </div>
                 </div>
               </div>
@@ -308,6 +367,7 @@ const CheckSheets = () => {
         </form>
       )}
 
+      {/* ========== TABEL RIWAYAT ========== */}
       <div className="bg-white rounded-lg shadow overflow-hidden">
         <h2 className="text-lg font-bold p-4 border-b">Riwayat Check Sheet</h2>
         <div className="overflow-x-auto">
@@ -329,8 +389,15 @@ const CheckSheets = () => {
                 sheets.map(sheet => (
                   <tr key={sheet.id} className="border-t hover:bg-gray-50">
                     <td className="px-4 py-2">{new Date(sheet.reading_date).toLocaleDateString('id-ID')}</td>
-                    <td className="px-4 py-2">{sheet.shift_name || `Shift ${sheet.shift_id}`}</td>
-                    <td className="px-4 py-2">{sheet.petugas_general || sheet.user_name || '-'}</td>
+                    <td className="px-4 py-2">
+                      {sheet.shift_id == 1 && 'Shift 1 (07:00-15:00)'}
+                      {sheet.shift_id == 2 && 'Shift 2 (15:00-22:00)'}
+                      {sheet.shift_id == 3 && 'Shift 3 (22:00-07:00)'}
+                      {sheet.shift_id == 4 && 'General (00:00-07:00)'}
+                    </td>
+                    <td className="px-4 py-2 font-medium">
+                      {sheet.petugas || sheet.user_name || '-'}
+                    </td>
                     <td className="px-4 py-2">
                       <button onClick={() => handleDelete(sheet.id)} className="text-red-600 hover:text-red-800 text-sm">Hapus</button>
                     </td>
