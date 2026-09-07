@@ -24,7 +24,6 @@ const Stp = () => {
     effluent_tank_notes: '',
     pump_blower_status: 'OK',
     pump_blower_notes: '',
-    flow_meter_reading: '',
     general_notes: ''
   });
 
@@ -91,14 +90,13 @@ const Stp = () => {
           effluent_tank_notes: '',
           pump_blower_status: 'OK',
           pump_blower_notes: '',
-          flow_meter_reading: '',
           general_notes: ''
         });
       } else {
         toast.error('Gagal menyimpan data');
       }
     } catch (error) {
-      console.error(' STP Error:', error);
+      console.error('❌ STP Error:', error);
       console.error('Response:', error.response?.data);
       toast.error('Gagal menyimpan: ' + (error.response?.data?.message || error.message));
     }
@@ -117,6 +115,15 @@ const Stp = () => {
       toast.error('Gagal menghapus');
     }
   };
+
+  const checklistItems = [
+    { label: 'I. Grit Chamber', status: 'grit_chamber_status', notes: 'grit_chamber_notes' },
+    { label: 'II. Equalizing Tank', status: 'equalizing_tank_status', notes: 'equalizing_tank_notes' },
+    { label: 'III. Aeration', status: 'aeration_status', notes: 'aeration_notes' },
+    { label: 'IV. Sedimentation Tank', status: 'sedimentation_tank_status', notes: 'sedimentation_tank_notes' },
+    { label: 'V. Effluent Tank', status: 'effluent_tank_status', notes: 'effluent_tank_notes' },
+    { label: 'VI. Pump Blower', status: 'pump_blower_status', notes: 'pump_blower_notes' }
+  ];
 
   return (
     <div className="p-6">
@@ -177,15 +184,8 @@ const Stp = () => {
 
           <h3 className="text-lg font-bold mb-3 text-green-600">Checklist Peralatan</h3>
           
-          {[
-            { label: 'I. Grit Chamber', status: 'grit_chamber_status', notes: 'grit_chamber_notes' },
-            { label: 'II. Equalizing Tank', status: 'equalizing_tank_status', notes: 'equalizing_tank_notes' },
-            { label: 'III. Aeration', status: 'aeration_status', notes: 'aeration_notes' },
-            { label: 'IV. Sedimentation Tank', status: 'sedimentation_tank_status', notes: 'sedimentation_tank_notes' },
-            { label: 'V. Effluent Tank', status: 'effluent_tank_status', notes: 'effluent_tank_notes' },
-            { label: 'VI. Pump Blower', status: 'pump_blower_status', notes: 'pump_blower_notes' }
-          ].map((item, idx) => (
-            <div key={idx} className="grid grid-cols-3 gap-4 mb-3">
+          {checklistItems.map((item, idx) => (
+            <div key={idx} className="grid grid-cols-3 gap-4 mb-3 items-center">
               <div className="font-medium">{item.label}</div>
               <select
                 name={item.status}
@@ -208,18 +208,6 @@ const Stp = () => {
           ))}
 
           <div className="mt-4">
-            <label className="block text-sm font-medium mb-1">Catat Flow Meter</label>
-            <input
-              type="number"
-              name="flow_meter_reading"
-              value={formData.flow_meter_reading}
-              onChange={handleChange}
-              step="0.1"
-              className="w-full border rounded-lg px-3 py-2"
-            />
-          </div>
-
-          <div className="mt-4">
             <label className="block text-sm font-medium mb-1">General Notes</label>
             <textarea
               name="general_notes"
@@ -227,6 +215,7 @@ const Stp = () => {
               onChange={handleChange}
               rows="3"
               className="w-full border rounded-lg px-3 py-2"
+              placeholder="Catatan tambahan..."
             />
           </div>
 
@@ -248,22 +237,68 @@ const Stp = () => {
                 <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Tanggal</th>
                 <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Periode</th>
                 <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Shift</th>
-                <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Flow Meter</th>
+                <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Grit Chamber</th>
+                <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Equalizing</th>
+                <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Aeration</th>
+                <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Sedimentation</th>
+                <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Effluent</th>
+                <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Pump Blower</th>
                 <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Actions</th>
               </tr>
             </thead>
             <tbody>
               {loading ? (
-                <tr><td colSpan="5" className="px-4 py-8 text-center">Loading...</td></tr>
+                <tr><td colSpan="10" className="px-4 py-8 text-center">Loading...</td></tr>
               ) : checklists.length === 0 ? (
-                <tr><td colSpan="5" className="px-4 py-8 text-center text-gray-500">Belum ada data</td></tr>
+                <tr><td colSpan="10" className="px-4 py-8 text-center text-gray-500">Belum ada data</td></tr>
               ) : (
                 checklists.map(item => (
                   <tr key={item.id} className="border-t hover:bg-gray-50">
                     <td className="px-4 py-2">{new Date(item.reading_date).toLocaleDateString('id-ID')}</td>
                     <td className="px-4 py-2">{item.period}</td>
                     <td className="px-4 py-2">Shift {item.shift_id}</td>
-                    <td className="px-4 py-2">{item.flow_meter_reading}</td>
+                    <td className="px-4 py-2">
+                      <span className={`px-2 py-1 rounded text-xs font-medium ${
+                        item.grit_chamber_status === 'OK' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
+                      }`}>
+                        {item.grit_chamber_status || '-'}
+                      </span>
+                    </td>
+                    <td className="px-4 py-2">
+                      <span className={`px-2 py-1 rounded text-xs font-medium ${
+                        item.equalizing_tank_status === 'OK' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
+                      }`}>
+                        {item.equalizing_tank_status || '-'}
+                      </span>
+                    </td>
+                    <td className="px-4 py-2">
+                      <span className={`px-2 py-1 rounded text-xs font-medium ${
+                        item.aeration_status === 'OK' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
+                      }`}>
+                        {item.aeration_status || '-'}
+                      </span>
+                    </td>
+                    <td className="px-4 py-2">
+                      <span className={`px-2 py-1 rounded text-xs font-medium ${
+                        item.sedimentation_tank_status === 'OK' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
+                      }`}>
+                        {item.sedimentation_tank_status || '-'}
+                      </span>
+                    </td>
+                    <td className="px-4 py-2">
+                      <span className={`px-2 py-1 rounded text-xs font-medium ${
+                        item.effluent_tank_status === 'OK' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
+                      }`}>
+                        {item.effluent_tank_status || '-'}
+                      </span>
+                    </td>
+                    <td className="px-4 py-2">
+                      <span className={`px-2 py-1 rounded text-xs font-medium ${
+                        item.pump_blower_status === 'OK' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
+                      }`}>
+                        {item.pump_blower_status || '-'}
+                      </span>
+                    </td>
                     <td className="px-4 py-2">
                       <button
                         onClick={() => handleDelete(item.id)}

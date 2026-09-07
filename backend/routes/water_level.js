@@ -35,15 +35,16 @@ router.post('/', authenticateToken, async (req, res) => {
   try {
     const {
       reading_date, reading_time, shift_id,
-      stand_meter, reservoir_1, reservoir_2, reservoir_3,
+      stand_meter, flow_meter, ph_inlet, ph_outlet,
+      reservoir_1, reservoir_2, reservoir_3,
       boster_timur, boster_barat,
       transfer_timur, transfer_barat,
-      notes
+      notes, petugas
     } = req.body;
 
     const user_id = req.user?.id || 1;
 
-    console.log(' Water Log POST - Data:', req.body);
+    console.log('📝 Water Log POST - Data:', req.body);
 
     const safeFloat = (val) => {
       const num = parseFloat(val);
@@ -53,18 +54,23 @@ router.post('/', authenticateToken, async (req, res) => {
     const [result] = await db.query(`
       INSERT INTO water_log (
         reading_date, reading_time, shift_id, user_id,
-        stand_meter, reservoir_1, reservoir_2, reservoir_3,
+        stand_meter, flow_meter, ph_inlet, ph_outlet,
+        reservoir_1, reservoir_2, reservoir_3,
         boster_timur, boster_barat,
         transfer_timur, transfer_barat,
-        notes
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        notes, petugas
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `, [
       reading_date, reading_time, parseInt(shift_id) || 1, user_id,
       safeFloat(stand_meter),
+      safeFloat(flow_meter),
+      safeFloat(ph_inlet),
+      safeFloat(ph_outlet),
       reservoir_1 || null, reservoir_2 || null, reservoir_3 || null,
       safeFloat(boster_timur), safeFloat(boster_barat),
       safeFloat(transfer_timur), safeFloat(transfer_barat),
-      notes || ''
+      notes || '',
+      petugas || ''
     ]);
 
     const [newLog] = await db.query('SELECT * FROM water_log WHERE id = ?', [result.insertId]);
@@ -78,7 +84,7 @@ router.post('/', authenticateToken, async (req, res) => {
     });
 
   } catch (error) {
-    console.error(' Water Log POST Error:', error.message);
+    console.error('❌ Water Log POST Error:', error.message);
     console.error('Stack:', error.stack);
     res.status(500).json({ 
       success: false, 

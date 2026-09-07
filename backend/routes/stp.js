@@ -7,7 +7,7 @@ const router = express.Router();
 // GET all STP checklists
 router.get('/', authenticateToken, async (req, res) => {
   try {
-    console.log(' STP GET - User:', req.user);
+    console.log('📊 STP GET - User:', req.user);
     
     const [rows] = await db.query(`
       SELECT s.*, s2.shift_name, u.full_name as user_name
@@ -41,7 +41,7 @@ router.post('/', authenticateToken, async (req, res) => {
       sedimentation_tank_status, sedimentation_tank_notes,
       effluent_tank_status, effluent_tank_notes,
       pump_blower_status, pump_blower_notes,
-      flow_meter_reading, general_notes
+      general_notes
     } = req.body;
 
     const user_id = req.user?.id || 1;
@@ -57,8 +57,8 @@ router.post('/', authenticateToken, async (req, res) => {
         sedimentation_tank_status, sedimentation_tank_notes,
         effluent_tank_status, effluent_tank_notes,
         pump_blower_status, pump_blower_notes,
-        flow_meter_reading, general_notes
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        general_notes
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `, [
       reading_date, period || '09.00', shift_id || 1, user_id,
       grit_chamber_status || 'OK', grit_chamber_notes || '',
@@ -67,7 +67,7 @@ router.post('/', authenticateToken, async (req, res) => {
       sedimentation_tank_status || 'OK', sedimentation_tank_notes || '',
       effluent_tank_status || 'OK', effluent_tank_notes || '',
       pump_blower_status || 'OK', pump_blower_notes || '',
-      parseFloat(flow_meter_reading) || 0, general_notes || ''
+      general_notes || ''
     ]);
 
     const [newData] = await db.query('SELECT * FROM stp_checklist WHERE id = ?', [result.insertId]);
