@@ -12,27 +12,26 @@ const WaterLevel = () => {
     reading_date: new Date().toISOString().split('T')[0],
     reading_time: '07:00',
     shift_id: 1,
-    water_level_inlet: '',
-    water_level_outlet: '',
-    ph_inlet: '',
-    ph_outlet: '',
-    tds_inlet: '',
-    tds_outlet: '',
-    temperature: '',
+    stand_meter: '',
+    reservoir_1: '',
+    reservoir_2: '',
+    reservoir_3: '',
+    boster_timur: '',
+    boster_barat: '',
+    transfer_timur: '',
+    transfer_barat: '',
     notes: ''
   });
 
   const fetchLogs = async () => {
     try {
       const token = localStorage.getItem('token');
-      console.log('📡 Fetching water logs from:', `${API_BASE_URL}/api/water-level`);
       const response = await axios.get(`${API_BASE_URL}/api/water-level`, {
         headers: { Authorization: `Bearer ${token}` }
       });
-      console.log('✅ Water logs response:', response.data);
       setLogs(response.data.data || []);
     } catch (error) {
-      console.error('❌ Error fetching water logs:', error);
+      console.error('Error fetching water logs:', error);
       toast.error('Gagal memuat data water log');
     } finally {
       setLoading(false);
@@ -52,7 +51,7 @@ const WaterLevel = () => {
     e.preventDefault();
     try {
       const token = localStorage.getItem('token');
-      console.log('📤 Sending Water Level data:', formData);
+      console.log(' Sending Water Level data:', formData);
 
       const response = await axios.post(
         `${API_BASE_URL}/api/water-level`,
@@ -70,19 +69,19 @@ const WaterLevel = () => {
       if (response.data && response.data.success) {
         toast.success('Water log berhasil disimpan!');
         setShowForm(false);
-        // Refresh data setelah save
-        await fetchLogs();
+        fetchLogs();
         setFormData({
           reading_date: new Date().toISOString().split('T')[0],
           reading_time: '07:00',
           shift_id: 1,
-          water_level_inlet: '',
-          water_level_outlet: '',
-          ph_inlet: '',
-          ph_outlet: '',
-          tds_inlet: '',
-          tds_outlet: '',
-          temperature: '',
+          stand_meter: '',
+          reservoir_1: '',
+          reservoir_2: '',
+          reservoir_3: '',
+          boster_timur: '',
+          boster_barat: '',
+          transfer_timur: '',
+          transfer_barat: '',
           notes: ''
         });
       } else {
@@ -143,42 +142,46 @@ const WaterLevel = () => {
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-medium mb-1">Water Level Inlet</label>
-              <input type="number" name="water_level_inlet" value={formData.water_level_inlet} onChange={handleChange} step="0.01" className="w-full border rounded px-3 py-2" />
-            </div>
-            <div>
-              <label className="block text-sm font-medium mb-1">Water Level Outlet</label>
-              <input type="number" name="water_level_outlet" value={formData.water_level_outlet} onChange={handleChange} step="0.01" className="w-full border rounded px-3 py-2" />
-            </div>
-          </div>
-
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-medium mb-1">pH Inlet</label>
-              <input type="number" name="ph_inlet" value={formData.ph_inlet} onChange={handleChange} step="0.1" className="w-full border rounded px-3 py-2" />
-            </div>
-            <div>
-              <label className="block text-sm font-medium mb-1">pH Outlet</label>
-              <input type="number" name="ph_outlet" value={formData.ph_outlet} onChange={handleChange} step="0.1" className="w-full border rounded px-3 py-2" />
-            </div>
-          </div>
-
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-medium mb-1">TDS Inlet</label>
-              <input type="number" name="tds_inlet" value={formData.tds_inlet} onChange={handleChange} step="0.1" className="w-full border rounded px-3 py-2" />
-            </div>
-            <div>
-              <label className="block text-sm font-medium mb-1">TDS Outlet</label>
-              <input type="number" name="tds_outlet" value={formData.tds_outlet} onChange={handleChange} step="0.1" className="w-full border rounded px-3 py-2" />
-            </div>
-          </div>
-
           <div>
-            <label className="block text-sm font-medium mb-1">Temperature (°C)</label>
-            <input type="number" name="temperature" value={formData.temperature} onChange={handleChange} step="0.1" className="w-full border rounded px-3 py-2" />
+            <label className="block text-sm font-medium mb-1">Stand Meter</label>
+            <input type="number" name="stand_meter" value={formData.stand_meter} onChange={handleChange} step="0.01" className="w-full border rounded px-3 py-2" />
+          </div>
+
+          <div className="grid grid-cols-3 gap-4">
+            <div>
+              <label className="block text-sm font-medium mb-1">Reservoir 1</label>
+              <input type="text" name="reservoir_1" value={formData.reservoir_1} onChange={handleChange} placeholder="B/R/N/T" className="w-full border rounded px-3 py-2" />
+            </div>
+            <div>
+              <label className="block text-sm font-medium mb-1">Reservoir 2</label>
+              <input type="text" name="reservoir_2" value={formData.reservoir_2} onChange={handleChange} placeholder="B/R/N/T" className="w-full border rounded px-3 py-2" />
+            </div>
+            <div>
+              <label className="block text-sm font-medium mb-1">Reservoir 3</label>
+              <input type="text" name="reservoir_3" value={formData.reservoir_3} onChange={handleChange} placeholder="B/R/N/T" className="w-full border rounded px-3 py-2" />
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium mb-1">Boster Timur</label>
+              <input type="number" name="boster_timur" value={formData.boster_timur} onChange={handleChange} step="0.01" className="w-full border rounded px-3 py-2" />
+            </div>
+            <div>
+              <label className="block text-sm font-medium mb-1">Boster Barat</label>
+              <input type="number" name="boster_barat" value={formData.boster_barat} onChange={handleChange} step="0.01" className="w-full border rounded px-3 py-2" />
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium mb-1">Transfer Timur</label>
+              <input type="number" name="transfer_timur" value={formData.transfer_timur} onChange={handleChange} step="0.01" className="w-full border rounded px-3 py-2" />
+            </div>
+            <div>
+              <label className="block text-sm font-medium mb-1">Transfer Barat</label>
+              <input type="number" name="transfer_barat" value={formData.transfer_barat} onChange={handleChange} step="0.01" className="w-full border rounded px-3 py-2" />
+            </div>
           </div>
 
           <div>
@@ -201,34 +204,36 @@ const WaterLevel = () => {
                 <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Tanggal</th>
                 <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Jam</th>
                 <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Shift</th>
-                <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Level Inlet</th>
-                <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Level Outlet</th>
-                <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">pH In</th>
-                <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">pH Out</th>
-                <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">TDS In</th>
-                <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">TDS Out</th>
-                <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Temp</th>
+                <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Stand Meter</th>
+                <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Reservoir 1</th>
+                <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Reservoir 2</th>
+                <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Reservoir 3</th>
+                <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Boster Tmr</th>
+                <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Boster Brt</th>
+                <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Transfer Tmr</th>
+                <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Transfer Brt</th>
                 <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Actions</th>
               </tr>
             </thead>
             <tbody>
               {loading ? (
-                <tr><td colSpan="11" className="px-4 py-8 text-center">Loading...</td></tr>
+                <tr><td colSpan="12" className="px-4 py-8 text-center">Loading...</td></tr>
               ) : logs.length === 0 ? (
-                <tr><td colSpan="11" className="px-4 py-8 text-center text-gray-500">Belum ada data</td></tr>
+                <tr><td colSpan="12" className="px-4 py-8 text-center text-gray-500">Belum ada data</td></tr>
               ) : (
                 logs.map(log => (
                   <tr key={log.id} className="border-t hover:bg-gray-50">
                     <td className="px-4 py-2">{new Date(log.reading_date).toLocaleDateString('id-ID')}</td>
                     <td className="px-4 py-2">{log.reading_time}</td>
                     <td className="px-4 py-2">Shift {log.shift_id}</td>
-                    <td className="px-4 py-2">{log.water_level_inlet ?? '-'}</td>
-                    <td className="px-4 py-2">{log.water_level_outlet ?? '-'}</td>
-                    <td className="px-4 py-2">{log.ph_inlet ?? '-'}</td>
-                    <td className="px-4 py-2">{log.ph_outlet ?? '-'}</td>
-                    <td className="px-4 py-2">{log.tds_inlet ?? '-'}</td>
-                    <td className="px-4 py-2">{log.tds_outlet ?? '-'}</td>
-                    <td className="px-4 py-2">{log.temperature ?? '-'}</td>
+                    <td className="px-4 py-2">{log.stand_meter ?? '-'}</td>
+                    <td className="px-4 py-2">{log.reservoir_1 ?? '-'}</td>
+                    <td className="px-4 py-2">{log.reservoir_2 ?? '-'}</td>
+                    <td className="px-4 py-2">{log.reservoir_3 ?? '-'}</td>
+                    <td className="px-4 py-2">{log.boster_timur ?? '-'}</td>
+                    <td className="px-4 py-2">{log.boster_barat ?? '-'}</td>
+                    <td className="px-4 py-2">{log.transfer_timur ?? '-'}</td>
+                    <td className="px-4 py-2">{log.transfer_barat ?? '-'}</td>
                     <td className="px-4 py-2">
                       <button onClick={() => handleDelete(log.id)} className="text-red-600 hover:text-red-800 text-sm">Hapus</button>
                     </td>
