@@ -21,6 +21,7 @@ router.get('/', authenticateToken, async (req, res) => {
     res.json({ success: true, data: rows });
   } catch (error) {
     console.error('❌ Photo Documentation GET Error:', error.message);
+    console.error('Stack:', error.stack);
     res.status(500).json({ 
       success: false, 
       error: error.message,
@@ -36,16 +37,34 @@ router.post('/', authenticateToken, async (req, res) => {
     const user_id = req.user?.id || 1;
 
     console.log('📝 Photo Documentation POST - User ID:', user_id);
-    console.log('Data:', req.body);
+    console.log('Data received - keys:', Object.keys(req.body));
+    console.log('Photo URL length:', photo_url?.length || 0);
+    console.log('Location:', location);
+    console.log('Category:', category);
+
+    // Validasi
+    if (!reading_date) {
+      return res.status(400).json({ 
+        success: false, 
+        message: 'Tanggal harus diisi' 
+      });
+    }
 
     const [result] = await db.query(`
       INSERT INTO photo_documentation (reading_date, location, category, description, photo_url, user_id)
       VALUES (?, ?, ?, ?, ?, ?)
-    `, [reading_date, location || '', category || 'General', description || '', photo_url || '', user_id]);
+    `, [
+      reading_date, 
+      location || '', 
+      category || 'General', 
+      description || '', 
+      photo_url || '', 
+      user_id
+    ]);
 
     const [newPhoto] = await db.query('SELECT * FROM photo_documentation WHERE id = ?', [result.insertId]);
 
-    console.log('✅ Photo Created:', newPhoto[0]);
+    console.log('✅ Photo Created:', newPhoto[0]?.id);
 
     res.status(201).json({ 
       success: true, 
@@ -54,10 +73,11 @@ router.post('/', authenticateToken, async (req, res) => {
     });
   } catch (error) {
     console.error('❌ Photo Documentation POST Error:', error.message);
+    console.error('Stack:', error.stack);
     res.status(500).json({ 
       success: false, 
       error: error.message,
-      message: 'Failed to upload photo'
+      message: 'Failed to upload photo: ' + error.message
     });
   }
 });
@@ -68,6 +88,7 @@ router.delete('/:id', authenticateToken, async (req, res) => {
     await db.query('DELETE FROM photo_documentation WHERE id = ?', [req.params.id]);
     res.json({ success: true, message: 'Deleted' });
   } catch (error) {
+    console.error('❌ Photo Delete Error:', error.message);
     res.status(500).json({ success: false, error: error.message });
   }
 });
