@@ -22,13 +22,15 @@ const Dashboard = () => {
     totalReadingsToday: 0,
     photosToday: 0,
     checkSheetsToday: 0,
-    handoverToday: 0
+    handoverToday: 0,
+    totalAll: 0
   });
 
   const fetchDashboardData = async () => {
     try {
       const token = localStorage.getItem('token');
       if (!token) {
+        console.warn('⚠️ No token found, redirecting to login');
         navigate('/login');
         return;
       }
@@ -36,7 +38,7 @@ const Dashboard = () => {
       const config = { headers: { Authorization: `Bearer ${token}` } };
       const today = new Date().toISOString().split('T')[0];
 
-      console.log('🔄 Fetching dashboard data...');
+      console.log('🔄 Fetching dashboard data for date:', today);
 
       // Fetch all data in parallel
       const [lvmdpRes, waterRes, stpRes, gensetRes, checkRes, photoRes, handoverRes] = await Promise.allSettled([
@@ -49,6 +51,17 @@ const Dashboard = () => {
         axios.get(`${API_BASE_URL}/api/shift-handover`, config)
       ]);
 
+      // Log each response status
+      console.log(' API Responses:', {
+        lvmdp: lvmdpRes.status,
+        water: waterRes.status,
+        stp: stpRes.status,
+        genset: gensetRes.status,
+        check: checkRes.status,
+        photo: photoRes.status,
+        handover: handoverRes.status
+      });
+
       const lvmdp = lvmdpRes.status === 'fulfilled' ? (lvmdpRes.value.data.data || []) : [];
       const waterLog = waterRes.status === 'fulfilled' ? (waterRes.value.data.data || []) : [];
       const stp = stpRes.status === 'fulfilled' ? (stpRes.value.data.data || []) : [];
@@ -56,6 +69,16 @@ const Dashboard = () => {
       const checkSheets = checkRes.status === 'fulfilled' ? (checkRes.value.data.data || []) : [];
       const photos = photoRes.status === 'fulfilled' ? (photoRes.value.data.data || []) : [];
       const shiftHandover = handoverRes.status === 'fulfilled' ? (handoverRes.value.data.data || []) : [];
+
+      console.log(' Data received:', {
+        lvmdp: lvmdp.length,
+        waterLog: waterLog.length,
+        stp: stp.length,
+        gensetLog: gensetLog.length,
+        checkSheets: checkSheets.length,
+        photos: photos.length,
+        shiftHandover: shiftHandover.length
+      });
 
       setDashboardData({ lvmdp, waterLog, stp, gensetLog, checkSheets, photos, shiftHandover });
 
@@ -69,24 +92,32 @@ const Dashboard = () => {
       const handoverToday = shiftHandover.filter(h => h.handover_date === today).length;
 
       const totalReadingsToday = lvmdpToday + waterToday + stpToday + gensetToday + checkToday;
+      const totalAll = lvmdp.length + waterLog.length + stp.length + gensetLog.length + checkSheets.length;
 
-      // Update stats - SEMUA VARIABEL TERDEFINISI
-      setStats({
-        totalReadingsToday: totalReadingsToday,
-        photosToday: photosToday,
-        checkSheetsToday: checkToday,
-        handoverToday: handoverToday
+      console.log('📈 Stats calculated:', {
+        today,
+        lvmdpToday,
+        waterToday,
+        stpToday,
+        gensetToday,
+        checkToday,
+        totalReadingsToday,
+        photosToday,
+        handoverToday,
+        totalAll
       });
 
-      console.log('✅ Dashboard data loaded:', {
+      setStats({
         totalReadingsToday,
         photosToday,
         checkSheetsToday: checkToday,
-        handoverToday
+        handoverToday,
+        totalAll
       });
 
     } catch (error) {
       console.error('❌ Error fetching dashboard data:', error);
+      console.error('Error details:', error.response?.data);
       toast.error('Gagal memuat data dashboard');
     } finally {
       setLoading(false);
@@ -104,7 +135,6 @@ const Dashboard = () => {
   useEffect(() => {
     fetchDashboardData();
     
-    // Auto-refresh setiap 60 detik
     const interval = setInterval(() => {
       console.log('⏰ Auto-refresh triggered');
       fetchDashboardData();
@@ -172,9 +202,7 @@ const Dashboard = () => {
               <p className="text-sm font-medium text-gray-600">Total Readings Today</p>
               <p className="text-3xl font-bold text-gray-900 mt-2">{stats.totalReadingsToday}</p>
               <p className="text-xs text-gray-500 mt-1">
-                LVMDP: {dashboardData.lvmdp.filter(r => r.reading_date === new Date().toISOString().split('T')[0]).length} |
-                Water: {dashboardData.waterLog.filter(r => r.reading_date === new Date().toISOString().split('T')[0]).length} |
-                STP: {dashboardData.stp.filter(r => r.reading_date === new Date().toISOString().split('T')[0]).length}
+                Total All Data: {stats.totalAll}
               </p>
             </div>
             <div className="bg-blue-100 p-3 rounded-lg">
@@ -191,7 +219,7 @@ const Dashboard = () => {
             <div>
               <p className="text-sm font-medium text-gray-600">Photos Today</p>
               <p className="text-3xl font-bold text-gray-900 mt-2">{stats.photosToday}</p>
-              <p className="text-xs text-gray-500 mt-1">Dokumentasi foto</p>
+              <p className="text-xs text-gray-500 mt-1">Total: {dashboardData.photos.length}</p>
             </div>
             <div className="bg-green-100 p-3 rounded-lg">
               <svg className="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -208,7 +236,7 @@ const Dashboard = () => {
             <div>
               <p className="text-sm font-medium text-gray-600">Check Sheets Today</p>
               <p className="text-3xl font-bold text-gray-900 mt-2">{stats.checkSheetsToday}</p>
-              <p className="text-xs text-gray-500 mt-1">Building equipment</p>
+              <p className="text-xs text-gray-500 mt-1">Total: {dashboardData.checkSheets.length}</p>
             </div>
             <div className="bg-purple-100 p-3 rounded-lg">
               <svg className="w-6 h-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -224,7 +252,7 @@ const Dashboard = () => {
             <div>
               <p className="text-sm font-medium text-gray-600">Handover Today</p>
               <p className="text-3xl font-bold text-gray-900 mt-2">{stats.handoverToday}</p>
-              <p className="text-xs text-gray-500 mt-1">Serah terima shift</p>
+              <p className="text-xs text-gray-500 mt-1">Total: {dashboardData.shiftHandover.length}</p>
             </div>
             <div className="bg-orange-100 p-3 rounded-lg">
               <svg className="w-6 h-6 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -235,56 +263,70 @@ const Dashboard = () => {
         </div>
       </div>
 
+      {/* Data Breakdown */}
+      <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-6">
+        <h3 className="text-lg font-semibold text-gray-900 mb-4">📊 Data Breakdown</h3>
+        <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-4">
+          <div className="text-center p-4 bg-yellow-50 rounded-lg">
+            <p className="text-2xl font-bold text-yellow-600">{dashboardData.lvmdp.length}</p>
+            <p className="text-xs text-gray-600">LVMDP</p>
+          </div>
+          <div className="text-center p-4 bg-blue-50 rounded-lg">
+            <p className="text-2xl font-bold text-blue-600">{dashboardData.waterLog.length}</p>
+            <p className="text-xs text-gray-600">Water Log</p>
+          </div>
+          <div className="text-center p-4 bg-green-50 rounded-lg">
+            <p className="text-2xl font-bold text-green-600">{dashboardData.stp.length}</p>
+            <p className="text-xs text-gray-600">STP</p>
+          </div>
+          <div className="text-center p-4 bg-orange-50 rounded-lg">
+            <p className="text-2xl font-bold text-orange-600">{dashboardData.gensetLog.length}</p>
+            <p className="text-xs text-gray-600">Genset</p>
+          </div>
+          <div className="text-center p-4 bg-purple-50 rounded-lg">
+            <p className="text-2xl font-bold text-purple-600">{dashboardData.checkSheets.length}</p>
+            <p className="text-xs text-gray-600">Check Sheets</p>
+          </div>
+          <div className="text-center p-4 bg-pink-50 rounded-lg">
+            <p className="text-2xl font-bold text-pink-600">{dashboardData.photos.length}</p>
+            <p className="text-xs text-gray-600">Photos</p>
+          </div>
+          <div className="text-center p-4 bg-indigo-50 rounded-lg">
+            <p className="text-2xl font-bold text-indigo-600">{dashboardData.shiftHandover.length}</p>
+            <p className="text-xs text-gray-600">Handover</p>
+          </div>
+        </div>
+      </div>
+
       {/* Quick Actions */}
       <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
         <h3 className="text-lg font-semibold text-gray-900 mb-4">⚡ Quick Actions</h3>
         <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-3">
-          <button 
-            onClick={() => navigate('/lvmdp')} 
-            className="flex flex-col items-center gap-2 p-4 bg-yellow-50 hover:bg-yellow-100 rounded-lg transition text-center"
-          >
+          <button onClick={() => navigate('/lvmdp')} className="flex flex-col items-center gap-2 p-4 bg-yellow-50 hover:bg-yellow-100 rounded-lg transition text-center">
             <span className="text-3xl">⚡</span>
             <span className="text-sm font-medium">LVMDP</span>
           </button>
-          <button 
-            onClick={() => navigate('/water-log')} 
-            className="flex flex-col items-center gap-2 p-4 bg-blue-50 hover:bg-blue-100 rounded-lg transition text-center"
-          >
+          <button onClick={() => navigate('/water-log')} className="flex flex-col items-center gap-2 p-4 bg-blue-50 hover:bg-blue-100 rounded-lg transition text-center">
             <span className="text-3xl">💧</span>
             <span className="text-sm font-medium">Water Log</span>
           </button>
-          <button 
-            onClick={() => navigate('/stp')} 
-            className="flex flex-col items-center gap-2 p-4 bg-green-50 hover:bg-green-100 rounded-lg transition text-center"
-          >
-            <span className="text-3xl">🌊</span>
+          <button onClick={() => navigate('/stp')} className="flex flex-col items-center gap-2 p-4 bg-green-50 hover:bg-green-100 rounded-lg transition text-center">
+            <span className="text-3xl"></span>
             <span className="text-sm font-medium">STP</span>
           </button>
-          <button 
-            onClick={() => navigate('/genset-log')} 
-            className="flex flex-col items-center gap-2 p-4 bg-orange-50 hover:bg-orange-100 rounded-lg transition text-center"
-          >
+          <button onClick={() => navigate('/genset-log')} className="flex flex-col items-center gap-2 p-4 bg-orange-50 hover:bg-orange-100 rounded-lg transition text-center">
             <span className="text-3xl">⚙️</span>
             <span className="text-sm font-medium">Genset</span>
           </button>
-          <button 
-            onClick={() => navigate('/check-sheets')} 
-            className="flex flex-col items-center gap-2 p-4 bg-purple-50 hover:bg-purple-100 rounded-lg transition text-center"
-          >
+          <button onClick={() => navigate('/check-sheets')} className="flex flex-col items-center gap-2 p-4 bg-purple-50 hover:bg-purple-100 rounded-lg transition text-center">
             <span className="text-3xl">📋</span>
             <span className="text-sm font-medium">Check Sheet</span>
           </button>
-          <button 
-            onClick={() => navigate('/photo-docs')} 
-            className="flex flex-col items-center gap-2 p-4 bg-pink-50 hover:bg-pink-100 rounded-lg transition text-center"
-          >
-            <span className="text-3xl">📷</span>
+          <button onClick={() => navigate('/photo-docs')} className="flex flex-col items-center gap-2 p-4 bg-pink-50 hover:bg-pink-100 rounded-lg transition text-center">
+            <span className="text-3xl"></span>
             <span className="text-sm font-medium">Photo</span>
           </button>
-          <button 
-            onClick={() => navigate('/shift-handover')} 
-            className="flex flex-col items-center gap-2 p-4 bg-indigo-50 hover:bg-indigo-100 rounded-lg transition text-center"
-          >
+          <button onClick={() => navigate('/shift-handover')} className="flex flex-col items-center gap-2 p-4 bg-indigo-50 hover:bg-indigo-100 rounded-lg transition text-center">
             <span className="text-3xl">🔄</span>
             <span className="text-sm font-medium">Handover</span>
           </button>
