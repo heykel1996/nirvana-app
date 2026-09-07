@@ -70,24 +70,18 @@ const Dashboard = () => {
 
       const totalReadingsToday = lvmdpToday + waterToday + stpToday + gensetToday + checkToday;
 
+      // Update stats - SEMUA VARIABEL TERDEFINISI
       setStats({
-        totalReadingsToday,
-        photosToday,
+        totalReadingsToday: totalReadingsToday,
+        photosToday: photosToday,
         checkSheetsToday: checkToday,
-        handoverToday
+        handoverToday: handoverToday
       });
 
       console.log('✅ Dashboard data loaded:', {
-        lvmdp: lvmdp.length,
-        waterLog: waterLog.length,
-        stp: stp.length,
-        gensetLog: gensetLog.length,
-        checkSheets: checkSheets.length,
-        photos: photos.length,
-        shiftHandover: shiftHandover.length,
         totalReadingsToday,
         photosToday,
-        checkSheetsToday,
+        checkSheetsToday: checkToday,
         handoverToday
       });
 
