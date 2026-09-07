@@ -21,7 +21,6 @@ router.get('/', authenticateToken, async (req, res) => {
     res.json({ success: true, data: rows });
   } catch (error) {
     console.error('❌ Photo Documentation GET Error:', error.message);
-    console.error('Stack:', error.stack);
     res.status(500).json({ 
       success: false, 
       error: error.message,
@@ -55,7 +54,6 @@ router.post('/', authenticateToken, async (req, res) => {
     });
   } catch (error) {
     console.error('❌ Photo Documentation POST Error:', error.message);
-    console.error('Stack:', error.stack);
     res.status(500).json({ 
       success: false, 
       error: error.message,

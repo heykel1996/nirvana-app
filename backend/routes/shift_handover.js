@@ -7,24 +7,27 @@ const router = express.Router();
 // GET all shift handovers
 router.get('/', authenticateToken, async (req, res) => {
   try {
+    console.log('📊 Shift Handover GET - User:', req.user);
+    
     const [rows] = await db.query(`
-      SELECT h.*, 
-             u1.full_name as from_user_name,
-             u2.full_name as to_user_name,
-             s1.shift_name as from_shift_name,
-             s2.shift_name as to_shift_name
+      SELECT h.*, s1.shift_name as from_shift_name, s2.shift_name as to_shift_name, u.full_name as user_name
       FROM shift_handover h
-      LEFT JOIN users u1 ON h.from_user_id = u1.id
-      LEFT JOIN users u2 ON h.to_user_id = u2.id
       LEFT JOIN shifts s1 ON h.from_shift_id = s1.id
       LEFT JOIN shifts s2 ON h.to_shift_id = s2.id
-      ORDER BY h.handover_date DESC, h.created_at DESC
+      LEFT JOIN users u ON h.user_id = u.id
+      ORDER BY h.handover_date DESC, h.from_shift_id ASC
       LIMIT 100
     `);
+    
+    console.log('✅ Shift Handover loaded:', rows.length, 'rows');
     res.json({ success: true, data: rows });
   } catch (error) {
-    console.error('Shift Handover Get Error:', error);
-    res.status(500).json({ success: false, error: error.message });
+    console.error(' Shift Handover GET Error:', error.message);
+    res.status(500).json({ 
+      success: false, 
+      error: error.message,
+      message: 'Failed to load shift handover'
+    });
   }
 });
 
@@ -39,8 +42,8 @@ router.post('/', authenticateToken, async (req, res) => {
 
     const user_id = req.user?.id || 1;
 
-    console.log('🔄 Shift Handover - User ID:', user_id);
-    console.log('Data received:', req.body);
+    console.log('📝 Shift Handover POST - User ID:', user_id);
+    console.log('Data:', req.body);
 
     const [result] = await db.query(`
       INSERT INTO shift_handover (
@@ -56,15 +59,21 @@ router.post('/', authenticateToken, async (req, res) => {
 
     const [newHandover] = await db.query('SELECT * FROM shift_handover WHERE id = ?', [result.insertId]);
 
-    console.log('✅ Handover created:', newHandover[0]);
+    console.log('✅ Shift Handover Created:', newHandover[0]);
 
-    res.status(201).json({ success: true, message: 'Handover saved', data: newHandover[0] });
+    res.status(201).json({
+      success: true,
+      message: 'Shift handover saved',
+      data: newHandover[0]
+    });
+
   } catch (error) {
-    console.error('❌ Handover Error:', error.message);
+    console.error('❌ Shift Handover POST Error:', error.message);
+    console.error('Stack:', error.stack);
     res.status(500).json({ 
       success: false, 
       error: error.message,
-      message: 'Failed to save handover'
+      message: 'Failed to save shift handover'
     });
   }
 });
@@ -73,9 +82,8 @@ router.post('/', authenticateToken, async (req, res) => {
 router.delete('/:id', authenticateToken, async (req, res) => {
   try {
     await db.query('DELETE FROM shift_handover WHERE id = ?', [req.params.id]);
-    res.json({ success: true, message: 'Deleted successfully' });
+    res.json({ success: true, message: 'Deleted' });
   } catch (error) {
-    console.error('Shift Handover Delete Error:', error);
     res.status(500).json({ success: false, error: error.message });
   }
 });

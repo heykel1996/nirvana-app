@@ -124,7 +124,7 @@ router.post('/', authenticateToken, async (req, res) => {
       placeholders.push('?');
     }
     if (data.petugas !== undefined) {
-      columns.push('petugas_general');
+      columns.push('petugas');
       values.push(data.petugas || '');
       placeholders.push('?');
     }
