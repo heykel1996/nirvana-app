@@ -7,7 +7,7 @@ const router = express.Router();
 // GET all STP checklists
 router.get('/', authenticateToken, async (req, res) => {
   try {
-    console.log('📊 STP GET - User:', req.user);
+    console.log(' STP GET - User:', req.user);
     
     const [rows] = await db.query(`
       SELECT s.*, s2.shift_name, u.full_name as user_name
@@ -22,11 +22,10 @@ router.get('/', authenticateToken, async (req, res) => {
     res.json({ success: true, data: rows });
   } catch (error) {
     console.error('❌ STP GET Error:', error.message);
-    console.error('Stack:', error.stack);
     res.status(500).json({ 
       success: false, 
       error: error.message,
-      message: 'Failed to load STP data'
+      message: 'Failed to load STP'
     });
   }
 });
@@ -47,8 +46,7 @@ router.post('/', authenticateToken, async (req, res) => {
 
     const user_id = req.user?.id || 1;
 
-    console.log('📝 STP POST - User ID:', user_id);
-    console.log('Data:', req.body);
+    console.log('📝 STP POST - Data:', req.body);
 
     const [result] = await db.query(`
       INSERT INTO stp_checklist (
@@ -72,14 +70,14 @@ router.post('/', authenticateToken, async (req, res) => {
       parseFloat(flow_meter_reading) || 0, general_notes || ''
     ]);
 
-    const [newChecklist] = await db.query('SELECT * FROM stp_checklist WHERE id = ?', [result.insertId]);
+    const [newData] = await db.query('SELECT * FROM stp_checklist WHERE id = ?', [result.insertId]);
 
-    console.log('✅ STP Created:', newChecklist[0]);
+    console.log('✅ STP Created:', newData[0]);
 
     res.status(201).json({
       success: true,
       message: 'STP checklist saved',
-      data: newChecklist[0]
+      data: newData[0]
     });
 
   } catch (error) {

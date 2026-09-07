@@ -2,7 +2,6 @@ import { useState, useEffect } from 'react';
 import axios from 'axios';
 import toast from 'react-hot-toast';
 
-// HARDCODE URL AZURE
 const API_BASE_URL = 'https://nirvana-mep-api-ffa0h4hsbtdkeucv.southeastasia-01.azurewebsites.net';
 
 const Stp = () => {
@@ -76,7 +75,6 @@ const Stp = () => {
         toast.success('Checklist STP berhasil disimpan!');
         setShowForm(false);
         fetchChecklists();
-        // Reset form
         setFormData({
           reading_date: new Date().toISOString().split('T')[0],
           period: '09.00',
@@ -100,7 +98,7 @@ const Stp = () => {
         toast.error('Gagal menyimpan data');
       }
     } catch (error) {
-      console.error('❌ STP Error:', error);
+      console.error(' STP Error:', error);
       console.error('Response:', error.response?.data);
       toast.error('Gagal menyimpan: ' + (error.response?.data?.message || error.message));
     }

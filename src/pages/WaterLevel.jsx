@@ -25,12 +25,14 @@ const WaterLevel = () => {
   const fetchLogs = async () => {
     try {
       const token = localStorage.getItem('token');
+      console.log('📡 Fetching water logs from:', `${API_BASE_URL}/api/water-level`);
       const response = await axios.get(`${API_BASE_URL}/api/water-level`, {
         headers: { Authorization: `Bearer ${token}` }
       });
+      console.log('✅ Water logs response:', response.data);
       setLogs(response.data.data || []);
     } catch (error) {
-      console.error('Error fetching water logs:', error);
+      console.error('❌ Error fetching water logs:', error);
       toast.error('Gagal memuat data water log');
     } finally {
       setLoading(false);
@@ -68,7 +70,8 @@ const WaterLevel = () => {
       if (response.data && response.data.success) {
         toast.success('Water log berhasil disimpan!');
         setShowForm(false);
-        fetchLogs();
+        // Refresh data setelah save
+        await fetchLogs();
         setFormData({
           reading_date: new Date().toISOString().split('T')[0],
           reading_time: '07:00',
@@ -86,7 +89,7 @@ const WaterLevel = () => {
         toast.error('Gagal menyimpan data');
       }
     } catch (error) {
-      console.error(' Water Level Error:', error);
+      console.error('❌ Water Level Error:', error);
       toast.error('Gagal menyimpan: ' + (error.response?.data?.message || error.message));
     }
   };
@@ -219,13 +222,13 @@ const WaterLevel = () => {
                     <td className="px-4 py-2">{new Date(log.reading_date).toLocaleDateString('id-ID')}</td>
                     <td className="px-4 py-2">{log.reading_time}</td>
                     <td className="px-4 py-2">Shift {log.shift_id}</td>
-                    <td className="px-4 py-2">{log.water_level_inlet}</td>
-                    <td className="px-4 py-2">{log.water_level_outlet}</td>
-                    <td className="px-4 py-2">{log.ph_inlet}</td>
-                    <td className="px-4 py-2">{log.ph_outlet}</td>
-                    <td className="px-4 py-2">{log.tds_inlet}</td>
-                    <td className="px-4 py-2">{log.tds_outlet}</td>
-                    <td className="px-4 py-2">{log.temperature}</td>
+                    <td className="px-4 py-2">{log.water_level_inlet ?? '-'}</td>
+                    <td className="px-4 py-2">{log.water_level_outlet ?? '-'}</td>
+                    <td className="px-4 py-2">{log.ph_inlet ?? '-'}</td>
+                    <td className="px-4 py-2">{log.ph_outlet ?? '-'}</td>
+                    <td className="px-4 py-2">{log.tds_inlet ?? '-'}</td>
+                    <td className="px-4 py-2">{log.tds_outlet ?? '-'}</td>
+                    <td className="px-4 py-2">{log.temperature ?? '-'}</td>
                     <td className="px-4 py-2">
                       <button onClick={() => handleDelete(log.id)} className="text-red-600 hover:text-red-800 text-sm">Hapus</button>
                     </td>
