@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 60">
+  <!-- Icon Building -->
+  <rect x="10" y="10" width="40" height="40" fill="#1e40af" rx="3"/>
+  <rect x="15" y="15" width="10" height="10" fill="white" opacity="0.8"/>
+  <rect x="30" y="15" width="10" height="10" fill="white" opacity="0.8"/>
+  <rect x="15" y="30" width="10" height="10" fill="white" opacity="0.8"/>
+  <rect x="30" y="30" width="10" height="10" fill="white" opacity="0.8"/>
+  
+  <!-- Text NIRVANA -->
+  <text x="60" y="28" font-family="Arial, sans-serif" font-size="24" font-weight="bold" fill="#1e40af">NIRVANA</text>
+  
+  <!-- Text MEP Engineering -->
+  <text x="60" y="42" font-family="Arial, sans-serif" font-size="10" fill="#6b7280">MEP Engineering</text>
+</svg>
