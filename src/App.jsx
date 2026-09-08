@@ -1,10 +1,7 @@
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { Toaster } from 'react-hot-toast';
-import { useState, useEffect } from 'react';
 import Sidebar from './components/Sidebar';
-import LoadingScreen from './components/LoadingScreen';
-
-// Import Pages
+import ProfileDropdown from './components/ProfileDropdown';
 import Login from './pages/Login';
 import Dashboard from './pages/Dashboard';
 import Lvmdp from './pages/Lvmdp';
@@ -20,49 +17,38 @@ import Reports from './pages/Reports';
 // Protected Route Component
 const ProtectedRoute = ({ children }) => {
   const token = localStorage.getItem('token');
-  
   if (!token) {
     return <Navigate to="/login" replace />;
   }
-  
+  return children;
+};
+
+// Layout Component dengan Header Profile
+const Layout = ({ children }) => {
   return (
     <div className="flex min-h-screen bg-gray-50">
+      {/* Sidebar */}
       <Sidebar />
-      <main className="flex-1 ml-64 p-6 overflow-auto">
-        {children}
-      </main>
+
+      {/* Main Content Area */}
+      <div className="flex-1 flex flex-col min-w-0">
+        {/* Header dengan Profile Dropdown */}
+        <header className="bg-white border-b border-gray-200 px-6 py-3 flex justify-end items-center sticky top-0 z-40 shadow-sm">
+          <ProfileDropdown />
+        </header>
+
+        {/* Page Content */}
+        <main className="flex-1 p-6 overflow-auto">
+          {children}
+        </main>
+      </div>
     </div>
   );
 };
 
-// Public Route (Login)
-const PublicRoute = ({ children }) => {
-  const token = localStorage.getItem('token');
-  
-  if (token) {
-    return <Navigate to="/dashboard" replace />;
-  }
-  
-  return children;
-};
-
 function App() {
-  const [appLoading, setAppLoading] = useState(true);
-
-  useEffect(() => {
-    // Initial app loading - 1.5 detik
-    const timer = setTimeout(() => {
-      setAppLoading(false);
-    }, 1500);
-    return () => clearTimeout(timer);
-  }, []);
-
-  if (appLoading) {
-    return <LoadingScreen />;
-  }
-
   return (
-    <Router>
+    <BrowserRouter>
       <Toaster 
         position="top-right"
         toastOptions={{
@@ -70,54 +56,70 @@ function App() {
           style: {
             background: '#363636',
             color: '#fff',
-            borderRadius: '12px',
-            padding: '16px',
-          },
-          success: {
-            duration: 3000,
-            iconTheme: {
-              primary: '#10b981',
-              secondary: '#fff',
-            },
-          },
-          error: {
-            duration: 4000,
-            iconTheme: {
-              primary: '#ef4444',
-              secondary: '#fff',
-            },
           },
         }}
       />
-      
       <Routes>
-        {/* Public Routes */}
-        <Route 
-          path="/login" 
-          element={
-            <PublicRoute>
-              <Login />
-            </PublicRoute>
-          } 
-        />
-        
+        {/* Public Route */}
+        <Route path="/login" element={<Login />} />
+
         {/* Protected Routes */}
-        <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
-        <Route path="/lvmdp" element={<ProtectedRoute><Lvmdp /></ProtectedRoute>} />
-        <Route path="/stp" element={<ProtectedRoute><Stp /></ProtectedRoute>} />
-        <Route path="/water-level" element={<ProtectedRoute><WaterLevel /></ProtectedRoute>} />
-        <Route path="/genset-log" element={<ProtectedRoute><GensetLog /></ProtectedRoute>} />
-        <Route path="/elektrikal" element={<ProtectedRoute><Elektrikal /></ProtectedRoute>} />
-        <Route path="/check-sheets" element={<ProtectedRoute><CheckSheets /></ProtectedRoute>} />
-        <Route path="/photo-documentation" element={<ProtectedRoute><PhotoDocumentation /></ProtectedRoute>} />
-        <Route path="/shift-handover" element={<ProtectedRoute><ShiftHandover /></ProtectedRoute>} />
-        <Route path="/reports" element={<ProtectedRoute><Reports /></ProtectedRoute>} />
-        
+        <Route path="/dashboard" element={
+          <ProtectedRoute>
+            <Layout><Dashboard /></Layout>
+          </ProtectedRoute>
+        } />
+        <Route path="/lvmdp" element={
+          <ProtectedRoute>
+            <Layout><Lvmdp /></Layout>
+          </ProtectedRoute>
+        } />
+        <Route path="/stp" element={
+          <ProtectedRoute>
+            <Layout><Stp /></Layout>
+          </ProtectedRoute>
+        } />
+        <Route path="/water-log" element={
+          <ProtectedRoute>
+            <Layout><WaterLevel /></Layout>
+          </ProtectedRoute>
+        } />
+        <Route path="/genset-log" element={
+          <ProtectedRoute>
+            <Layout><GensetLog /></Layout>
+          </ProtectedRoute>
+        } />
+        <Route path="/electrical-log" element={
+          <ProtectedRoute>
+            <Layout><Elektrikal /></Layout>
+          </ProtectedRoute>
+        } />
+        <Route path="/check-sheets" element={
+          <ProtectedRoute>
+            <Layout><CheckSheets /></Layout>
+          </ProtectedRoute>
+        } />
+        <Route path="/photo-docs" element={
+          <ProtectedRoute>
+            <Layout><PhotoDocumentation /></Layout>
+          </ProtectedRoute>
+        } />
+        <Route path="/shift-handover" element={
+          <ProtectedRoute>
+            <Layout><ShiftHandover /></Layout>
+          </ProtectedRoute>
+        } />
+        <Route path="/reports" element={
+          <ProtectedRoute>
+            <Layout><Reports /></Layout>
+          </ProtectedRoute>
+        } />
+
         {/* Default Route */}
         <Route path="/" element={<Navigate to="/dashboard" replace />} />
         <Route path="*" element={<Navigate to="/dashboard" replace />} />
       </Routes>
-    </Router>
+    </BrowserRouter>
   );
 }
 

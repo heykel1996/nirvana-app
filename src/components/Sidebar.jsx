@@ -1,17 +1,16 @@
 import { useState } from 'react';
-import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import logo from '../assets/logo.svg';
 
 const Sidebar = () => {
   const location = useLocation();
-  const navigate = useNavigate();
   const [collapsed, setCollapsed] = useState(false);
 
   const menuItems = [
     { path: '/dashboard', label: 'Dashboard', icon: '📊' },
     { path: '/lvmdp', label: 'LVMDP', icon: '⚡', sublabel: 'Panel Tegangan Rendah' },
     { path: '/stp', label: 'STP', icon: '🌊', sublabel: 'Sewage Treatment Plant' },
-    { path: '/water-log', label: 'Water Log', icon: '', sublabel: 'Water Log Sheet' },
+    { path: '/water-log', label: 'Water Log', icon: '💧', sublabel: 'Water Log Sheet' },
     { path: '/genset-log', label: 'Genset Log', icon: '⚙️', sublabel: 'Log Sheet Genset' },
     { path: '/electrical-log', label: 'Electrical Log', icon: '🔌', sublabel: 'Electrical Log Sheet' },
     { path: '/check-sheets', label: 'Check Sheets', icon: '📋', sublabel: 'Building Equipment' },
@@ -22,14 +21,8 @@ const Sidebar = () => {
 
   const isActive = (path) => location.pathname === path;
 
-  const handleLogout = () => {
-    localStorage.removeItem('token');
-    localStorage.removeItem('user');
-    navigate('/login');
-  };
-
   return (
-    <div className={`bg-gray-900 text-white transition-all duration-300 ${collapsed ? 'w-20' : 'w-64'} min-h-screen flex flex-col`}>
+    <div className={`bg-gray-900 text-white transition-all duration-300 ${collapsed ? 'w-20' : 'w-64'} flex-shrink-0`}>
       {/* Logo Section */}
       <div className="p-4 border-b border-gray-700 flex items-center justify-between">
         {!collapsed && (
@@ -54,7 +47,7 @@ const Sidebar = () => {
       )}
 
       {/* Menu Items */}
-      <nav className="p-4 space-y-2 flex-1">
+      <nav className="p-4 space-y-2">
         {menuItems.map((item) => (
           <Link
             key={item.path}
@@ -77,19 +70,6 @@ const Sidebar = () => {
           </Link>
         ))}
       </nav>
-
-      {/* Logout Button */}
-      <div className="p-4 border-t border-gray-700">
-        <button
-          onClick={handleLogout}
-          className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg bg-red-600 hover:bg-red-700 text-white transition-all ${
-            collapsed ? 'justify-center' : ''
-          }`}
-        >
-          <span className="text-xl">🚪</span>
-          {!collapsed && <span className="text-sm font-medium">Logout</span>}
-        </button>
-      </div>
     </div>
   );
 };

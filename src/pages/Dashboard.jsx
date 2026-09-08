@@ -134,7 +134,6 @@ const Dashboard = () => {
   const latestSTP = dashboardData.stp[0];
   const latestGenset = dashboardData.gensetLog[0];
 
-  // Recent activity
   const recentActivity = [
     ...dashboardData.lvmdp.slice(0, 2).map(r => ({ type: 'LVMDP', date: r.reading_date, time: r.reading_time, detail: `KW: ${r.kw || '-'}`, color: 'bg-yellow-500' })),
     ...dashboardData.waterLog.slice(0, 2).map(r => ({ type: 'Water Log', date: r.reading_date, time: r.reading_time, detail: `Stand Meter: ${r.stand_meter || '-'}`, color: 'bg-blue-500' })),
@@ -145,10 +144,11 @@ const Dashboard = () => {
     ...dashboardData.shiftHandover.slice(0, 2).map(r => ({ type: 'Handover', date: r.handover_date, time: `Shift ${r.from_shift_id}→${r.to_shift_id}`, detail: r.from_user || '-', color: 'bg-indigo-500' }))
   ].sort((a, b) => new Date(b.date) - new Date(a.date)).slice(0, 8);
 
+  // HAPUS max-w-7xl mx-auto agar full width tanpa spacing berlebih
   return (
-    <div className="p-6 max-w-7xl mx-auto">
+    <div className="space-y-6">
       {/* Header */}
-      <div className="flex justify-between items-center mb-6">
+      <div className="flex justify-between items-center">
         <div>
           <h1 className="text-3xl font-bold text-gray-900">Dashboard</h1>
           <p className="text-gray-600 mt-1">Selamat datang, {getUserName()} 👋</p>
@@ -165,8 +165,8 @@ const Dashboard = () => {
         </button>
       </div>
 
-      {/* Summary Cards - 4 Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+      {/* Summary Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         <div className="bg-white rounded-xl border border-gray-200 p-5 hover:shadow-md transition-shadow">
           <div className="flex items-center justify-between">
             <div className="flex-1">
@@ -230,7 +230,7 @@ const Dashboard = () => {
       </div>
 
       {/* Data Breakdown */}
-      <div className="bg-white rounded-xl border border-gray-200 p-5 mb-6">
+      <div className="bg-white rounded-xl border border-gray-200 p-5">
         <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
           <span>📊</span> Data Breakdown
         </h3>
@@ -267,13 +267,13 @@ const Dashboard = () => {
       </div>
 
       {/* Quick Actions */}
-      <div className="bg-white rounded-xl border border-gray-200 p-5 mb-6">
+      <div className="bg-white rounded-xl border border-gray-200 p-5">
         <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
-          <span>⚡</span> Quick Actions
+          <span></span> Quick Actions
         </h3>
         <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-3">
           <button onClick={() => navigate('/lvmdp')} className="flex flex-col items-center justify-center gap-2 p-5 bg-yellow-50 hover:bg-yellow-100 border border-yellow-100 rounded-lg transition text-center">
-            <span className="text-3xl"></span>
+            <span className="text-3xl">⚡</span>
             <span className="text-sm font-medium text-gray-700">LVMDP</span>
           </button>
           <button onClick={() => navigate('/water-log')} className="flex flex-col items-center justify-center gap-2 p-5 bg-blue-50 hover:bg-blue-100 border border-blue-100 rounded-lg transition text-center">
@@ -292,7 +292,7 @@ const Dashboard = () => {
             <span className="text-sm font-medium text-gray-700">Check Sheet</span>
           </button>
           <button onClick={() => navigate('/photo-docs')} className="flex flex-col items-center justify-center gap-2 p-5 bg-pink-50 hover:bg-pink-100 border border-pink-100 rounded-lg transition text-center">
-            <span className="text-3xl">📷</span>
+            <span className="text-3xl"></span>
             <span className="text-sm font-medium text-gray-700">Photo</span>
           </button>
           <button onClick={() => navigate('/shift-handover')} className="flex flex-col items-center justify-center gap-2 p-5 bg-indigo-50 hover:bg-indigo-100 border border-indigo-100 rounded-lg transition text-center">
@@ -302,8 +302,8 @@ const Dashboard = () => {
         </div>
       </div>
 
-      {/* Latest Readings - 4 Cards Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-6">
+      {/* Latest Readings */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         {/* Latest LVMDP */}
         <div className="bg-white rounded-xl border border-gray-200 p-5">
           <div className="flex justify-between items-center mb-4">
@@ -500,7 +500,7 @@ const Dashboard = () => {
         {/* Latest Genset */}
         <div className="bg-white rounded-xl border border-gray-200 p-5">
           <div className="flex justify-between items-center mb-4">
-            <h3 className="text-lg font-semibold text-gray-900">️ Latest Genset Log</h3>
+            <h3 className="text-lg font-semibold text-gray-900">⚙️ Latest Genset Log</h3>
             <button onClick={() => navigate('/genset-log')} className="text-blue-600 text-sm hover:underline">View All →</button>
           </div>
           {latestGenset ? (
@@ -560,7 +560,7 @@ const Dashboard = () => {
       </div>
 
       {/* Recent Activity */}
-      <div className="bg-white rounded-xl border border-gray-200 p-5 mb-6">
+      <div className="bg-white rounded-xl border border-gray-200 p-5">
         <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
           <span>📋</span> Recent Activity
         </h3>
