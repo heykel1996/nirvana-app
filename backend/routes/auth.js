@@ -51,9 +51,20 @@ router.post('/login', async (req, res) => {
     }
 
     const user = users[0];
+    console.log('User found:', user.username);
+    console.log('Password hash exists:', !!user.password_hash);
 
-    // Verifikasi password
-    const validPassword = await bcrypt.compare(password, user.password);
+    // ️ PENTING: Gunakan password_hash, BUKAN password
+    if (!user.password_hash) {
+      console.log('❌ password_hash is NULL for user:', username);
+      return res.status(500).json({ 
+        success: false, 
+        message: 'Password user belum diset. Hubungi administrator.' 
+      });
+    }
+
+    // Verifikasi password dengan password_hash
+    const validPassword = await bcrypt.compare(password, user.password_hash);
     if (!validPassword) {
       console.log('❌ Invalid password for:', username);
       return res.status(401).json({ 
@@ -136,7 +147,15 @@ router.post('/reset-password', authenticateToken, async (req, res) => {
 
     const user = users[0];
 
-    const validPassword = await bcrypt.compare(old_password, user.password);
+    // ⚠️ PENTING: Gunakan password_hash
+    if (!user.password_hash) {
+      return res.status(500).json({ 
+        success: false, 
+        message: 'Password user belum diset. Hubungi administrator.' 
+      });
+    }
+
+    const validPassword = await bcrypt.compare(old_password, user.password_hash);
     
     if (!validPassword) {
       return res.status(400).json({ 
@@ -147,7 +166,8 @@ router.post('/reset-password', authenticateToken, async (req, res) => {
 
     const hashedPassword = await bcrypt.hash(new_password, 10);
 
-    await db.query('UPDATE users SET password = ? WHERE id = ?', [hashedPassword, userId]);
+    // ⚠️ PENTING: Update password_hash, BUKAN password
+    await db.query('UPDATE users SET password_hash = ? WHERE id = ?', [hashedPassword, userId]);
 
     console.log('✅ Password berhasil direset untuk user:', user.username);
 
