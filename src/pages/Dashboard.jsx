@@ -37,8 +37,6 @@ const Dashboard = () => {
       const config = { headers: { Authorization: `Bearer ${token}` } };
       const today = new Date().toISOString().split('T')[0];
 
-      console.log('🔄 Fetching dashboard data for date:', today);
-
       const [lvmdpRes, waterRes, stpRes, gensetRes, checkRes, photoRes, handoverRes] = await Promise.allSettled([
         axios.get(`${API_BASE_URL}/api/lvmdp`, config),
         axios.get(`${API_BASE_URL}/api/water-level`, config),
@@ -59,7 +57,6 @@ const Dashboard = () => {
 
       setDashboardData({ lvmdp, waterLog, stp, gensetLog, checkSheets, photos, shiftHandover });
 
-      // Calculate stats for today
       const lvmdpToday = lvmdp.filter(r => r.reading_date === today).length;
       const waterToday = waterLog.filter(r => r.reading_date === today).length;
       const stpToday = stp.filter(r => r.reading_date === today).length;
@@ -79,16 +76,8 @@ const Dashboard = () => {
         totalAll
       });
 
-      console.log('✅ Dashboard data loaded:', {
-        totalReadingsToday,
-        photosToday,
-        checkSheetsToday: checkToday,
-        handoverToday,
-        totalAll
-      });
-
     } catch (error) {
-      console.error('❌ Error fetching dashboard data:', error);
+      console.error(' Error fetching dashboard data:', error);
       toast.error('Gagal memuat data dashboard');
     } finally {
       setLoading(false);
@@ -97,7 +86,6 @@ const Dashboard = () => {
   };
 
   const handleRefresh = () => {
-    console.log('🔄 Manual refresh triggered');
     setRefreshing(true);
     fetchDashboardData();
     toast.success('Dashboard di-refresh!');
@@ -105,11 +93,7 @@ const Dashboard = () => {
 
   useEffect(() => {
     fetchDashboardData();
-    
-    const interval = setInterval(() => {
-      fetchDashboardData();
-    }, 60000);
-    
+    const interval = setInterval(() => fetchDashboardData(), 60000);
     return () => clearInterval(interval);
   }, []);
 
@@ -122,6 +106,18 @@ const Dashboard = () => {
     }
   };
 
+  const formatDate = (dateStr) => {
+    if (!dateStr) return '-';
+    return new Date(dateStr).toLocaleDateString('id-ID', {
+      day: '2-digit', month: 'short', year: 'numeric'
+    });
+  };
+
+  const formatTime = (timeStr) => {
+    if (!timeStr) return '-';
+    return timeStr.toString().padStart(5, '0');
+  };
+
   if (loading) {
     return (
       <div className="p-6 flex items-center justify-center h-64">
@@ -132,6 +128,22 @@ const Dashboard = () => {
       </div>
     );
   }
+
+  const latestLVMDP = dashboardData.lvmdp[0];
+  const latestWater = dashboardData.waterLog[0];
+  const latestSTP = dashboardData.stp[0];
+  const latestGenset = dashboardData.gensetLog[0];
+
+  // Recent activity
+  const recentActivity = [
+    ...dashboardData.lvmdp.slice(0, 2).map(r => ({ type: 'LVMDP', date: r.reading_date, time: r.reading_time, detail: `KW: ${r.kw || '-'}`, color: 'bg-yellow-500' })),
+    ...dashboardData.waterLog.slice(0, 2).map(r => ({ type: 'Water Log', date: r.reading_date, time: r.reading_time, detail: `Stand Meter: ${r.stand_meter || '-'}`, color: 'bg-blue-500' })),
+    ...dashboardData.stp.slice(0, 2).map(r => ({ type: 'STP', date: r.reading_date, time: r.period, detail: `Flow: ${r.flow_meter_reading || '-'}`, color: 'bg-green-500' })),
+    ...dashboardData.gensetLog.slice(0, 2).map(r => ({ type: 'Genset', date: r.reading_date, time: r.reading_time, detail: r.is_running ? 'Running' : 'Off', color: 'bg-orange-500' })),
+    ...dashboardData.checkSheets.slice(0, 2).map(r => ({ type: 'Check Sheet', date: r.reading_date, time: `Shift ${r.shift_id}`, detail: r.petugas || '-', color: 'bg-purple-500' })),
+    ...dashboardData.photos.slice(0, 2).map(r => ({ type: 'Photo', date: r.reading_date, time: '', detail: r.location || '-', color: 'bg-pink-500' })),
+    ...dashboardData.shiftHandover.slice(0, 2).map(r => ({ type: 'Handover', date: r.handover_date, time: `Shift ${r.from_shift_id}→${r.to_shift_id}`, detail: r.from_user || '-', color: 'bg-indigo-500' }))
+  ].sort((a, b) => new Date(b.date) - new Date(a.date)).slice(0, 8);
 
   return (
     <div className="p-6 max-w-7xl mx-auto">
@@ -146,18 +158,8 @@ const Dashboard = () => {
           disabled={refreshing}
           className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
         >
-          <svg 
-            className={`w-4 h-4 ${refreshing ? 'animate-spin' : ''}`} 
-            fill="none" 
-            stroke="currentColor" 
-            viewBox="0 0 24 24"
-          >
-            <path 
-              strokeLinecap="round" 
-              strokeLinejoin="round" 
-              strokeWidth={2} 
-              d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" 
-            />
+          <svg className={`w-4 h-4 ${refreshing ? 'animate-spin' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
           </svg>
           {refreshing ? 'Refreshing...' : 'Refresh'}
         </button>
@@ -165,7 +167,6 @@ const Dashboard = () => {
 
       {/* Summary Cards - 4 Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-        {/* Total Readings Today */}
         <div className="bg-white rounded-xl border border-gray-200 p-5 hover:shadow-md transition-shadow">
           <div className="flex items-center justify-between">
             <div className="flex-1">
@@ -181,7 +182,6 @@ const Dashboard = () => {
           </div>
         </div>
 
-        {/* Photos Today */}
         <div className="bg-white rounded-xl border border-gray-200 p-5 hover:shadow-md transition-shadow">
           <div className="flex items-center justify-between">
             <div className="flex-1">
@@ -198,7 +198,6 @@ const Dashboard = () => {
           </div>
         </div>
 
-        {/* Check Sheets Today */}
         <div className="bg-white rounded-xl border border-gray-200 p-5 hover:shadow-md transition-shadow">
           <div className="flex items-center justify-between">
             <div className="flex-1">
@@ -214,7 +213,6 @@ const Dashboard = () => {
           </div>
         </div>
 
-        {/* Handover Today */}
         <div className="bg-white rounded-xl border border-gray-200 p-5 hover:shadow-md transition-shadow">
           <div className="flex items-center justify-between">
             <div className="flex-1">
@@ -269,60 +267,327 @@ const Dashboard = () => {
       </div>
 
       {/* Quick Actions */}
-      <div className="bg-white rounded-xl border border-gray-200 p-5">
+      <div className="bg-white rounded-xl border border-gray-200 p-5 mb-6">
         <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
           <span>⚡</span> Quick Actions
         </h3>
         <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-3">
-          <button 
-            onClick={() => navigate('/lvmdp')} 
-            className="flex flex-col items-center justify-center gap-2 p-5 bg-yellow-50 hover:bg-yellow-100 border border-yellow-100 rounded-lg transition text-center"
-          >
-            <span className="text-3xl">⚡</span>
+          <button onClick={() => navigate('/lvmdp')} className="flex flex-col items-center justify-center gap-2 p-5 bg-yellow-50 hover:bg-yellow-100 border border-yellow-100 rounded-lg transition text-center">
+            <span className="text-3xl"></span>
             <span className="text-sm font-medium text-gray-700">LVMDP</span>
           </button>
-          <button 
-            onClick={() => navigate('/water-log')} 
-            className="flex flex-col items-center justify-center gap-2 p-5 bg-blue-50 hover:bg-blue-100 border border-blue-100 rounded-lg transition text-center"
-          >
+          <button onClick={() => navigate('/water-log')} className="flex flex-col items-center justify-center gap-2 p-5 bg-blue-50 hover:bg-blue-100 border border-blue-100 rounded-lg transition text-center">
             <span className="text-3xl">💧</span>
             <span className="text-sm font-medium text-gray-700">Water Log</span>
           </button>
-          <button 
-            onClick={() => navigate('/stp')} 
-            className="flex flex-col items-center justify-center gap-2 p-5 bg-green-50 hover:bg-green-100 border border-green-100 rounded-lg transition text-center"
-          >
+          <button onClick={() => navigate('/stp')} className="flex flex-col items-center justify-center gap-2 p-5 bg-green-50 hover:bg-green-100 border border-green-100 rounded-lg transition text-center">
             <span className="text-sm font-bold text-gray-700">STP</span>
           </button>
-          <button 
-            onClick={() => navigate('/genset-log')} 
-            className="flex flex-col items-center justify-center gap-2 p-5 bg-orange-50 hover:bg-orange-100 border border-orange-100 rounded-lg transition text-center"
-          >
+          <button onClick={() => navigate('/genset-log')} className="flex flex-col items-center justify-center gap-2 p-5 bg-orange-50 hover:bg-orange-100 border border-orange-100 rounded-lg transition text-center">
             <span className="text-3xl">⚙️</span>
             <span className="text-sm font-medium text-gray-700">Genset</span>
           </button>
-          <button 
-            onClick={() => navigate('/check-sheets')} 
-            className="flex flex-col items-center justify-center gap-2 p-5 bg-purple-50 hover:bg-purple-100 border border-purple-100 rounded-lg transition text-center"
-          >
+          <button onClick={() => navigate('/check-sheets')} className="flex flex-col items-center justify-center gap-2 p-5 bg-purple-50 hover:bg-purple-100 border border-purple-100 rounded-lg transition text-center">
             <span className="text-3xl">📋</span>
             <span className="text-sm font-medium text-gray-700">Check Sheet</span>
           </button>
-          <button 
-            onClick={() => navigate('/photo-docs')} 
-            className="flex flex-col items-center justify-center gap-2 p-5 bg-pink-50 hover:bg-pink-100 border border-pink-100 rounded-lg transition text-center"
-          >
+          <button onClick={() => navigate('/photo-docs')} className="flex flex-col items-center justify-center gap-2 p-5 bg-pink-50 hover:bg-pink-100 border border-pink-100 rounded-lg transition text-center">
             <span className="text-3xl">📷</span>
             <span className="text-sm font-medium text-gray-700">Photo</span>
           </button>
-          <button 
-            onClick={() => navigate('/shift-handover')} 
-            className="flex flex-col items-center justify-center gap-2 p-5 bg-indigo-50 hover:bg-indigo-100 border border-indigo-100 rounded-lg transition text-center"
-          >
+          <button onClick={() => navigate('/shift-handover')} className="flex flex-col items-center justify-center gap-2 p-5 bg-indigo-50 hover:bg-indigo-100 border border-indigo-100 rounded-lg transition text-center">
             <span className="text-3xl">🔄</span>
             <span className="text-sm font-medium text-gray-700">Handover</span>
           </button>
         </div>
+      </div>
+
+      {/* Latest Readings - 4 Cards Grid */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-6">
+        {/* Latest LVMDP */}
+        <div className="bg-white rounded-xl border border-gray-200 p-5">
+          <div className="flex justify-between items-center mb-4">
+            <h3 className="text-lg font-semibold text-gray-900">⚡ Latest LVMDP Reading</h3>
+            <button onClick={() => navigate('/lvmdp')} className="text-blue-600 text-sm hover:underline">View All →</button>
+          </div>
+          {latestLVMDP ? (
+            <div className="space-y-3">
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <p className="text-xs text-gray-500">Date</p>
+                  <p className="font-medium">{formatDate(latestLVMDP.reading_date)}</p>
+                </div>
+                <div>
+                  <p className="text-xs text-gray-500">Time</p>
+                  <p className="font-medium">{formatTime(latestLVMDP.reading_time)}</p>
+                </div>
+              </div>
+              <div className="grid grid-cols-3 gap-4 pt-3 border-t">
+                <div>
+                  <p className="text-xs text-gray-500">Ampere R</p>
+                  <p className="font-bold text-blue-600">{latestLVMDP.ampere_r || '-'}</p>
+                </div>
+                <div>
+                  <p className="text-xs text-gray-500">Ampere S</p>
+                  <p className="font-bold text-blue-600">{latestLVMDP.ampere_s || '-'}</p>
+                </div>
+                <div>
+                  <p className="text-xs text-gray-500">Ampere T</p>
+                  <p className="font-bold text-blue-600">{latestLVMDP.ampere_t || '-'}</p>
+                </div>
+              </div>
+              <div className="grid grid-cols-3 gap-4">
+                <div>
+                  <p className="text-xs text-gray-500">Volt RS</p>
+                  <p className="font-bold text-green-600">{latestLVMDP.volt_rs || '-'}</p>
+                </div>
+                <div>
+                  <p className="text-xs text-gray-500">Volt ST</p>
+                  <p className="font-bold text-green-600">{latestLVMDP.volt_st || '-'}</p>
+                </div>
+                <div>
+                  <p className="text-xs text-gray-500">Volt TR</p>
+                  <p className="font-bold text-green-600">{latestLVMDP.volt_tr || '-'}</p>
+                </div>
+              </div>
+              <div className="grid grid-cols-3 gap-4 pt-3 border-t">
+                <div>
+                  <p className="text-xs text-gray-500">KW</p>
+                  <p className="font-bold text-orange-600">{latestLVMDP.kw || '-'}</p>
+                </div>
+                <div>
+                  <p className="text-xs text-gray-500">Cos Q</p>
+                  <p className="font-bold text-orange-600">{latestLVMDP.cos_q || '-'}</p>
+                </div>
+                <div>
+                  <p className="text-xs text-gray-500">Hz</p>
+                  <p className="font-bold text-orange-600">{latestLVMDP.hz || '-'}</p>
+                </div>
+              </div>
+            </div>
+          ) : (
+            <div className="text-center py-8 text-gray-500">
+              <p>Belum ada data LVMDP</p>
+              <button onClick={() => navigate('/lvmdp')} className="mt-2 text-blue-600 text-sm hover:underline">Tambah Reading →</button>
+            </div>
+          )}
+        </div>
+
+        {/* Latest Water Log */}
+        <div className="bg-white rounded-xl border border-gray-200 p-5">
+          <div className="flex justify-between items-center mb-4">
+            <h3 className="text-lg font-semibold text-gray-900">💧 Latest Water Log</h3>
+            <button onClick={() => navigate('/water-log')} className="text-blue-600 text-sm hover:underline">View All →</button>
+          </div>
+          {latestWater ? (
+            <div className="space-y-3">
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <p className="text-xs text-gray-500">Date</p>
+                  <p className="font-medium">{formatDate(latestWater.reading_date)}</p>
+                </div>
+                <div>
+                  <p className="text-xs text-gray-500">Time</p>
+                  <p className="font-medium">{formatTime(latestWater.reading_time)}</p>
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-4 pt-3 border-t">
+                <div>
+                  <p className="text-xs text-gray-500">Stand Meter</p>
+                  <p className="font-bold text-blue-600">{latestWater.stand_meter || '-'}</p>
+                </div>
+                <div>
+                  <p className="text-xs text-gray-500">Shift</p>
+                  <p className="font-bold text-blue-600">Shift {latestWater.shift_id}</p>
+                </div>
+              </div>
+              <div className="grid grid-cols-3 gap-4">
+                <div>
+                  <p className="text-xs text-gray-500">Reservoir 1</p>
+                  <p className="font-bold text-green-600">{latestWater.reservoir_1 || '-'}</p>
+                </div>
+                <div>
+                  <p className="text-xs text-gray-500">Reservoir 2</p>
+                  <p className="font-bold text-green-600">{latestWater.reservoir_2 || '-'}</p>
+                </div>
+                <div>
+                  <p className="text-xs text-gray-500">Reservoir 3</p>
+                  <p className="font-bold text-green-600">{latestWater.reservoir_3 || '-'}</p>
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-4 pt-3 border-t">
+                <div>
+                  <p className="text-xs text-gray-500">Boster Timur</p>
+                  <p className="font-bold text-orange-600">{latestWater.boster_timur || '-'}</p>
+                </div>
+                <div>
+                  <p className="text-xs text-gray-500">Boster Barat</p>
+                  <p className="font-bold text-orange-600">{latestWater.boster_barat || '-'}</p>
+                </div>
+              </div>
+            </div>
+          ) : (
+            <div className="text-center py-8 text-gray-500">
+              <p>Belum ada data Water Log</p>
+              <button onClick={() => navigate('/water-log')} className="mt-2 text-blue-600 text-sm hover:underline">Tambah Water Log →</button>
+            </div>
+          )}
+        </div>
+
+        {/* Latest STP */}
+        <div className="bg-white rounded-xl border border-gray-200 p-5">
+          <div className="flex justify-between items-center mb-4">
+            <h3 className="text-lg font-semibold text-gray-900">🌊 Latest STP Checklist</h3>
+            <button onClick={() => navigate('/stp')} className="text-blue-600 text-sm hover:underline">View All →</button>
+          </div>
+          {latestSTP ? (
+            <div className="space-y-3">
+              <div className="grid grid-cols-3 gap-4">
+                <div>
+                  <p className="text-xs text-gray-500">Date</p>
+                  <p className="font-medium">{formatDate(latestSTP.reading_date)}</p>
+                </div>
+                <div>
+                  <p className="text-xs text-gray-500">Period</p>
+                  <p className="font-medium">{latestSTP.period || '-'}</p>
+                </div>
+                <div>
+                  <p className="text-xs text-gray-500">Shift</p>
+                  <p className="font-bold text-blue-600">Shift {latestSTP.shift_id}</p>
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-4 pt-3 border-t">
+                <div>
+                  <p className="text-xs text-gray-500">Grit Chamber</p>
+                  <span className={`inline-block px-2 py-1 rounded text-xs font-medium ${latestSTP.grit_chamber_status === 'OK' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
+                    {latestSTP.grit_chamber_status || '-'}
+                  </span>
+                </div>
+                <div>
+                  <p className="text-xs text-gray-500">Aeration</p>
+                  <span className={`inline-block px-2 py-1 rounded text-xs font-medium ${latestSTP.aeration_status === 'OK' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
+                    {latestSTP.aeration_status || '-'}
+                  </span>
+                </div>
+              </div>
+              <div className="grid grid-cols-4 gap-2 pt-2">
+                <div className="text-center p-2 bg-gray-50 rounded">
+                  <p className="text-xs text-gray-500">Equalizing</p>
+                  <p className="font-bold text-sm">{latestSTP.equalizing_tank_status || '-'}</p>
+                </div>
+                <div className="text-center p-2 bg-gray-50 rounded">
+                  <p className="text-xs text-gray-500">Sedimentation</p>
+                  <p className="font-bold text-sm">{latestSTP.sedimentation_tank_status || '-'}</p>
+                </div>
+                <div className="text-center p-2 bg-gray-50 rounded">
+                  <p className="text-xs text-gray-500">Effluent</p>
+                  <p className="font-bold text-sm">{latestSTP.effluent_tank_status || '-'}</p>
+                </div>
+                <div className="text-center p-2 bg-gray-50 rounded">
+                  <p className="text-xs text-gray-500">Pump Blower</p>
+                  <p className="font-bold text-sm">{latestSTP.pump_blower_status || '-'}</p>
+                </div>
+              </div>
+            </div>
+          ) : (
+            <div className="text-center py-8 text-gray-500">
+              <p>Belum ada data STP</p>
+              <button onClick={() => navigate('/stp')} className="mt-2 text-blue-600 text-sm hover:underline">Tambah Checklist →</button>
+            </div>
+          )}
+        </div>
+
+        {/* Latest Genset */}
+        <div className="bg-white rounded-xl border border-gray-200 p-5">
+          <div className="flex justify-between items-center mb-4">
+            <h3 className="text-lg font-semibold text-gray-900">️ Latest Genset Log</h3>
+            <button onClick={() => navigate('/genset-log')} className="text-blue-600 text-sm hover:underline">View All →</button>
+          </div>
+          {latestGenset ? (
+            <div className="space-y-3">
+              <div className="grid grid-cols-3 gap-4">
+                <div>
+                  <p className="text-xs text-gray-500">Date</p>
+                  <p className="font-medium">{formatDate(latestGenset.reading_date)}</p>
+                </div>
+                <div>
+                  <p className="text-xs text-gray-500">Time</p>
+                  <p className="font-medium">{formatTime(latestGenset.reading_time)}</p>
+                </div>
+                <div>
+                  <p className="text-xs text-gray-500">Status</p>
+                  <span className={`inline-block px-2 py-1 rounded text-xs font-medium ${latestGenset.is_running ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'}`}>
+                    {latestGenset.is_running ? 'RUNNING' : 'OFF'}
+                  </span>
+                </div>
+              </div>
+              <div className="grid grid-cols-3 gap-4 pt-3 border-t">
+                <div>
+                  <p className="text-xs text-gray-500">Running Hours</p>
+                  <p className="font-bold text-blue-600">{latestGenset.running_hours || '-'}</p>
+                </div>
+                <div>
+                  <p className="text-xs text-gray-500">Battery 24VDC</p>
+                  <p className="font-bold text-blue-600">{latestGenset.battery_24vdc || '-'}</p>
+                </div>
+                <div>
+                  <p className="text-xs text-gray-500">Charger</p>
+                  <p className="font-bold text-blue-600">{latestGenset.battery_charger_status || '-'}</p>
+                </div>
+              </div>
+              <div className="grid grid-cols-3 gap-4">
+                <div>
+                  <p className="text-xs text-gray-500">Temperature</p>
+                  <p className="font-bold text-orange-600">{latestGenset.engine_temperature || '-'}°C</p>
+                </div>
+                <div>
+                  <p className="text-xs text-gray-500">Oil Pressure</p>
+                  <p className="font-bold text-orange-600">{latestGenset.oil_pressure || '-'} Bar</p>
+                </div>
+                <div>
+                  <p className="text-xs text-gray-500">Daily Tank</p>
+                  <p className="font-bold text-orange-600">{latestGenset.daily_tank_volume || '-'}</p>
+                </div>
+              </div>
+            </div>
+          ) : (
+            <div className="text-center py-8 text-gray-500">
+              <p>Belum ada data Genset</p>
+              <button onClick={() => navigate('/genset-log')} className="mt-2 text-blue-600 text-sm hover:underline">Tambah Log →</button>
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Recent Activity */}
+      <div className="bg-white rounded-xl border border-gray-200 p-5">
+        <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
+          <span>📋</span> Recent Activity
+        </h3>
+        {recentActivity.length > 0 ? (
+          <div className="space-y-2">
+            {recentActivity.map((activity, idx) => (
+              <div key={idx} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition">
+                <div className="flex items-center gap-3">
+                  <div className={`w-2 h-2 rounded-full ${activity.color}`}></div>
+                  <div>
+                    <p className="font-medium text-sm">{activity.type}</p>
+                    <p className="text-xs text-gray-500">{activity.detail}</p>
+                  </div>
+                </div>
+                <div className="text-right">
+                  <p className="text-xs font-medium">{formatDate(activity.date)}</p>
+                  <p className="text-xs text-gray-500">{activity.time}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <div className="text-center py-8 text-gray-500">
+            <p>Belum ada aktivitas</p>
+            <p className="text-xs mt-1">Mulai isi form untuk melihat aktivitas di sini</p>
+          </div>
+        )}
       </div>
     </div>
   );
