@@ -14,9 +14,9 @@ const Sidebar = () => {
     { path: '/genset-log', label: 'Genset Log', icon: '⚙️', sublabel: 'Log Sheet Genset' },
     { path: '/electrical-log', label: 'Electrical Log', icon: '🔌', sublabel: 'Electrical Log Sheet' },
     { path: '/check-sheets', label: 'Check Sheets', icon: '📋', sublabel: 'Building Equipment' },
-    { path: '/photo-docs', label: 'Photo Docs', icon: '📷', sublabel: 'Photo Documentation' },
+    { path: '/photo-docs', label: 'Photo Docs', icon: '', sublabel: 'Photo Documentation' },
     { path: '/shift-handover', label: 'Shift Handover', icon: '🔄', sublabel: 'Serah Terima Shift' },
-    { path: '/reports', label: 'Reports', icon: '📈', sublabel: 'Laporan' }
+    { path: '/reports', label: 'Reports', icon: '', sublabel: 'Laporan' }
   ];
 
   const isActive = (path) => location.pathname === path;

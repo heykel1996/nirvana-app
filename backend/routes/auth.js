@@ -5,7 +5,7 @@ const jwt = require('jsonwebtoken');
 
 const router = express.Router();
 
-// Middleware authenticateToken (inline untuk menghindari error import)
+// Middleware untuk verifikasi token
 const authenticateToken = (req, res, next) => {
   const authHeader = req.headers['authorization'];
   const token = authHeader && authHeader.split(' ')[1];
@@ -30,7 +30,7 @@ router.post('/login', async (req, res) => {
   try {
     const { username, password } = req.body;
 
-    console.log(' Login attempt for:', username);
+    console.log('🔐 Login attempt for:', username);
 
     if (!username || !password) {
       return res.status(400).json({ 
