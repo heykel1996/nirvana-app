@@ -2,6 +2,13 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Custom styles */
+@layer base {
+  body {
+    @apply bg-gray-50;
+  }
+}
+
 /* Hide scrollbar for mobile */
 @media (max-width: 768px) {
   body {
@@ -20,15 +27,7 @@
   }
 }
 
-/* Smooth transitions */
 * {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-}
-
-/* Safe area for iOS */
-@supports (padding: env(safe-area-inset-bottom)) {
-  .pb-safe {
-    padding-bottom: env(safe-area-inset-bottom);
-  }
 }
