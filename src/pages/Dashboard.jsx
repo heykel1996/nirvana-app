@@ -560,7 +560,6 @@ const Dashboard = () => {
       </div>
 
       {/* Recent Activity */}
-      {/* Recent Activity */}
       <div className="bg-white rounded-xl border border-gray-200 p-5 mb-6">
         <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
           <span>📋</span> Recent Activity
