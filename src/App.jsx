@@ -1,7 +1,9 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { Toaster } from 'react-hot-toast';
+import { useState } from 'react';
 import Sidebar from './components/Sidebar';
-import ProfileDropdown from './components/ProfileDropdown';
+import MobileHeader from './components/MobileHeader';
+import ProfileButton from './components/ProfileButton';
 import Login from './pages/Login';
 import Dashboard from './pages/Dashboard';
 import Lvmdp from './pages/Lvmdp';
@@ -14,34 +16,33 @@ import PhotoDocumentation from './pages/PhotoDocumentation';
 import ShiftHandover from './pages/ShiftHandover';
 import Reports from './pages/Reports';
 
-// Protected Route Component
 const ProtectedRoute = ({ children }) => {
   const token = localStorage.getItem('token');
-  if (!token) {
-    return <Navigate to="/login" replace />;
-  }
+  if (!token) return <Navigate to="/login" replace />;
   return children;
 };
 
-// Layout Component dengan Header Profile
-const Layout = ({ children }) => {
-  return (
-    <div className="flex min-h-screen bg-gray-50">
-      {/* Sidebar */}
-      <Sidebar />
+const Layout = ({ children, title }) => {
+  const [sidebarOpen, setSidebarOpen] = useState(false);
 
-      {/* Main Content Area */}
+  return (
+    <div className="min-h-screen bg-gray-50 flex">
+      {/* Sidebar (Desktop: always visible, Mobile: toggle) */}
+      <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
+
+      {/* Main Content */}
       <div className="flex-1 flex flex-col min-w-0">
-        {/* Header dengan Profile Dropdown */}
-        <header className="bg-white border-b border-gray-200 px-6 py-3 flex justify-end items-center sticky top-0 z-40 shadow-sm">
-          <ProfileDropdown />
-        </header>
+        {/* Mobile Header dengan Hamburger Menu */}
+        <MobileHeader onMenuClick={() => setSidebarOpen(true)} title={title} />
 
         {/* Page Content */}
-        <main className="flex-1 p-6 overflow-auto">
+        <main className="flex-1 p-4 pb-24 lg:p-6 lg:pb-6 overflow-auto">
           {children}
         </main>
       </div>
+
+      {/* Profile Button - Floating di kanan bawah */}
+      <ProfileButton />
     </div>
   );
 };
@@ -50,72 +51,70 @@ function App() {
   return (
     <BrowserRouter>
       <Toaster 
-        position="top-right"
+        position="top-center"
         toastOptions={{
           duration: 3000,
           style: {
             background: '#363636',
             color: '#fff',
+            borderRadius: '8px',
           },
         }}
       />
       <Routes>
-        {/* Public Route */}
         <Route path="/login" element={<Login />} />
 
-        {/* Protected Routes */}
         <Route path="/dashboard" element={
           <ProtectedRoute>
-            <Layout><Dashboard /></Layout>
+            <Layout title="Dashboard"><Dashboard /></Layout>
           </ProtectedRoute>
         } />
         <Route path="/lvmdp" element={
           <ProtectedRoute>
-            <Layout><Lvmdp /></Layout>
+            <Layout title="LVMDP"><Lvmdp /></Layout>
           </ProtectedRoute>
         } />
         <Route path="/stp" element={
           <ProtectedRoute>
-            <Layout><Stp /></Layout>
+            <Layout title="STP"><Stp /></Layout>
           </ProtectedRoute>
         } />
         <Route path="/water-log" element={
           <ProtectedRoute>
-            <Layout><WaterLevel /></Layout>
+            <Layout title="Water Log"><WaterLevel /></Layout>
           </ProtectedRoute>
         } />
         <Route path="/genset-log" element={
           <ProtectedRoute>
-            <Layout><GensetLog /></Layout>
+            <Layout title="Genset Log"><GensetLog /></Layout>
           </ProtectedRoute>
         } />
         <Route path="/electrical-log" element={
           <ProtectedRoute>
-            <Layout><Elektrikal /></Layout>
+            <Layout title="Electrical Log"><Elektrikal /></Layout>
           </ProtectedRoute>
         } />
         <Route path="/check-sheets" element={
           <ProtectedRoute>
-            <Layout><CheckSheets /></Layout>
+            <Layout title="Check Sheets"><CheckSheets /></Layout>
           </ProtectedRoute>
         } />
         <Route path="/photo-docs" element={
           <ProtectedRoute>
-            <Layout><PhotoDocumentation /></Layout>
+            <Layout title="Photo Docs"><PhotoDocumentation /></Layout>
           </ProtectedRoute>
         } />
         <Route path="/shift-handover" element={
           <ProtectedRoute>
-            <Layout><ShiftHandover /></Layout>
+            <Layout title="Shift Handover"><ShiftHandover /></Layout>
           </ProtectedRoute>
         } />
         <Route path="/reports" element={
           <ProtectedRoute>
-            <Layout><Reports /></Layout>
+            <Layout title="Reports"><Reports /></Layout>
           </ProtectedRoute>
         } />
 
-        {/* Default Route */}
         <Route path="/" element={<Navigate to="/dashboard" replace />} />
         <Route path="*" element={<Navigate to="/dashboard" replace />} />
       </Routes>
